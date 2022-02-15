@@ -1,0 +1,11 @@
+apiVersion: 1
+datasources:
+  - name: influxdb
+    type: influxdb
+    access: proxy
+    database: tair_cli
+    user: tair_cli
+    password: tair_cli
+    url: http://influxdb:8086
+    isDefault: true
+    editable: true

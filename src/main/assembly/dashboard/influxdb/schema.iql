@@ -1,0 +1,4 @@
+create database "tair_cli";
+create user "tair_cli" with password 'tair_cli';
+grant all on "tair_cli" to "tair_cli";
+create retention policy "30days" on "tair_cli" duration 30d replication 1 default;
