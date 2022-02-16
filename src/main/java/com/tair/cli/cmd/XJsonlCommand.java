@@ -18,6 +18,15 @@ package com.tair.cli.cmd;
 
 import java.util.concurrent.Callable;
 
+import com.moilioncircle.redis.replicator.Replicator;
+import com.moilioncircle.redis.replicator.Replicators;
+import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
+import com.moilioncircle.redis.replicator.event.PreCommandSyncEvent;
+import com.tair.cli.conf.Configure;
+import com.tair.cli.ext.Filter;
+import com.tair.cli.ext.RedisScanReplicator;
+import com.tair.cli.ext.listener.JsonlEventListener;
+
 import picocli.CommandLine;
 
 /**
@@ -39,6 +48,21 @@ public class XJsonlCommand implements Callable<Integer> {
 	
 	@Override
 	public Integer call() throws Exception {
+		Configure configure = Configure.bind();
+		Filter filter = new Filter(parent.regexs, parent.db, parent.type);
+		Replicator replicator = new RedisScanReplicator(parent.source, configure, filter);
+		replicator.addEventListener(new JsonlEventListener(configure));
+		replicator.addExceptionListener((rep, tx, e) -> {
+			throw new RuntimeException(tx.getMessage(), tx);
+		});
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			Replicators.closeQuietly(replicator);
+		}));
+		replicator.addEventListener((rep, event) -> {
+			if (event instanceof PostRdbSyncEvent || event instanceof PreCommandSyncEvent)
+				Replicators.closeQuietly(replicator);
+		});
+		replicator.open();
 		return 0;
 	}
 }

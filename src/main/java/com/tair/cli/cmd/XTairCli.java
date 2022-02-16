@@ -43,16 +43,16 @@ public class XTairCli implements Callable<Integer> {
 	private boolean versionInfoRequested;
 	
 	@CommandLine.Option(names = {"--source"}, required = true, description = {"Source uri. eg: redis://host:port?authPassword=foobar."}, scope = CommandLine.ScopeType.INHERIT)
-	private String source;
+	String source;
 	
-	@CommandLine.Option(names = {"--db"}, arity = "1..*", paramLabel = "<num>", description = {"Database number. multiple databases can be provided. if not specified, all databases will be returned."}, type = Long.class, scope = CommandLine.ScopeType.INHERIT)
-	private List<Long> db = new ArrayList<>();
+	@CommandLine.Option(names = {"--db"}, arity = "1..*", paramLabel = "<num>", description = {"Database number. multiple databases can be provided. if not specified, all databases will be returned."}, type = Integer.class, scope = CommandLine.ScopeType.INHERIT)
+	List<Integer> db = new ArrayList<>();
 	
 	@CommandLine.Option(names = {"--key"}, arity = "1..*", paramLabel = "<regex>", description = {"Keys to export. this can be a regex. if not specified, all keys will be returned."}, scope = CommandLine.ScopeType.INHERIT)
-	private List<String> regexs = new ArrayList<>();
+	List<String> regexs = new ArrayList<>();
 	
 	@CommandLine.Option(names = {"--type"}, arity = "1..*", description = {"Data type to export. possible values are: string, hash, set, sortedset, list, module, stream. multiple types can be provided. if not specified, all data types will be returned."} , scope = CommandLine.ScopeType.INHERIT)
-	private List<String> type = new ArrayList<>();
+	List<String> type = new ArrayList<>();
 	
 	@Override
 	public Integer call() throws Exception {
