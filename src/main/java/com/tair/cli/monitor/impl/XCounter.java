@@ -19,9 +19,9 @@ package com.tair.cli.monitor.impl;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
 
-import com.tair.cli.monitor.entity.Counter;
 import com.moilioncircle.redis.replicator.util.Tuples;
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
+import com.tair.cli.monitor.entity.Counter;
 
 
 /**

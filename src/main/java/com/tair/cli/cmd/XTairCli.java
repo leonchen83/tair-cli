@@ -16,13 +16,11 @@
 
 package com.tair.cli.cmd;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.tair.cli.cmd.support.XVersionProvider;
-import com.tair.cli.conf.Configure;
 
 import picocli.CommandLine;
 
@@ -31,21 +29,33 @@ import picocli.CommandLine;
  */
 @CommandLine.Command(name = "tair-cli",
 		separator = " ",
-		usageHelpWidth = 80,
 		synopsisHeading = "",
+		optionListHeading = "Options:%n",
 		mixinStandardHelpOptions = true,
-		optionListHeading = "%nOptions:%n",
-		versionProvider = XVersionProvider.class)
+		versionProvider = XVersionProvider.class,
+		subcommands = {CommandLine.HelpCommand.class, XRdbCommand.class, XRespCommand.class, XMemoryCommand.class, XJsonlCommand.class})
 public class XTairCli implements Callable<Integer> {
-	
-	private static final Logger logger = LoggerFactory.getLogger(XTairCli.class);
 	
 	@CommandLine.Spec
 	private CommandLine.Model.CommandSpec spec;
 	
+	@CommandLine.Option(names = {"--version"}, versionHelp = true, description = "Print version information and exit.")
+	private boolean versionInfoRequested;
+	
+	@CommandLine.Option(names = {"--source"}, required = true, description = {"Source uri. eg: redis://host:port?authPassword=foobar."}, scope = CommandLine.ScopeType.INHERIT)
+	private String source;
+	
+	@CommandLine.Option(names = {"--db"}, arity = "1..*", paramLabel = "<num>", description = {"Database number. multiple databases can be provided. if not specified, all databases will be returned."}, type = Long.class, scope = CommandLine.ScopeType.INHERIT)
+	private List<Long> db = new ArrayList<>();
+	
+	@CommandLine.Option(names = {"--key"}, arity = "1..*", paramLabel = "<regex>", description = {"Keys to export. this can be a regex. if not specified, all keys will be returned."}, scope = CommandLine.ScopeType.INHERIT)
+	private List<String> regexs = new ArrayList<>();
+	
+	@CommandLine.Option(names = {"--type"}, arity = "1..*", description = {"Data type to export. possible values are: string, hash, set, sortedset, list, module, stream. multiple types can be provided. if not specified, all data types will be returned."} , scope = CommandLine.ScopeType.INHERIT)
+	private List<String> type = new ArrayList<>();
+	
 	@Override
 	public Integer call() throws Exception {
-		Configure configure = Configure.bind();
 		return 0;
 	}
 }

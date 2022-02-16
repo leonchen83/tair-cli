@@ -14,19 +14,31 @@
  * limitations under the License.
  */
 
-package com.tair.cli;
+package com.tair.cli.cmd;
 
-import com.tair.cli.cmd.XTairCli;
+import java.util.concurrent.Callable;
 
 import picocli.CommandLine;
 
 /**
  * @author Baoyi Chen
  */
-public class TairCli {
-	public static void main(String[] args) {
-		CommandLine commandLine = new CommandLine(new XTairCli());
-		int r = commandLine.execute(args);
-		if (r != 0) System.exit(r);
+@CommandLine.Command(name = "jsonl",
+		descriptionHeading = "Description: ",
+		description = "Convert source to jsonl format.",
+		separator = " ",
+		synopsisHeading = "",
+		optionListHeading = "Options:%n")
+public class XJsonlCommand implements Callable<Integer> {
+	
+	@CommandLine.Spec
+	private CommandLine.Model.CommandSpec spec;
+	
+	@CommandLine.ParentCommand
+	private XTairCli parent;
+	
+	@Override
+	public Integer call() throws Exception {
+		return 0;
 	}
 }

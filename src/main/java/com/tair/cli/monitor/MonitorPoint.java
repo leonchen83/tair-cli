@@ -19,10 +19,10 @@ package com.tair.cli.monitor;
 import static com.tair.cli.monitor.MonitorType.COUNTER;
 import static com.tair.cli.monitor.MonitorType.GAUGE;
 
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
 import com.tair.cli.monitor.entity.Counter;
 import com.tair.cli.monitor.entity.Gauge;
 import com.tair.cli.monitor.entity.Monitor;
-import com.moilioncircle.redis.replicator.util.type.Tuple2;
 
 /**
  * @author Jingqi Xu

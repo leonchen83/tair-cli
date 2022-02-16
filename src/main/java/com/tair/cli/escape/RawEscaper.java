@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package com.tair.cli;
+package com.tair.cli.escape;
 
-import com.tair.cli.cmd.XTairCli;
+import java.io.OutputStream;
 
-import picocli.CommandLine;
+import com.moilioncircle.redis.rdb.cli.api.format.escape.Escaper;
+import com.tair.cli.util.OutputStreams;
+
 
 /**
  * @author Baoyi Chen
  */
-public class TairCli {
-	public static void main(String[] args) {
-		CommandLine commandLine = new CommandLine(new XTairCli());
-		int r = commandLine.execute(args);
-		if (r != 0) System.exit(r);
-	}
+public class RawEscaper implements Escaper {
+
+    @Override
+    public void encode(int b, OutputStream out) {
+        OutputStreams.write(b & 0xFF, out);
+    }
+    
+    @Override
+    public void encode(byte[] bytes, int off, int len, OutputStream out) {
+        if (bytes == null) return;
+        OutputStreams.write(bytes, off, len, out);
+    }
 }
