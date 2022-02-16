@@ -46,12 +46,15 @@ public class XJsonlCommand implements Callable<Integer> {
 	@CommandLine.ParentCommand
 	private XTairCli parent;
 	
+	@CommandLine.Option(names = {"--convert"}, description = {"Whether convert tair module to normal data structure."})
+	private boolean convert;
+	
 	@Override
 	public Integer call() throws Exception {
 		Configure configure = Configure.bind();
 		Filter filter = new Filter(parent.regexs, parent.db, parent.type);
 		Replicator replicator = new RedisScanReplicator(parent.source, configure, filter);
-		replicator.addEventListener(new JsonlEventListener(configure));
+		replicator.addEventListener(new JsonlEventListener(convert, configure));
 		replicator.addExceptionListener((rep, tx, e) -> {
 			throw new RuntimeException(tx.getMessage(), tx);
 		});

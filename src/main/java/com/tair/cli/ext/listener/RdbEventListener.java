@@ -16,15 +16,12 @@
 
 package com.tair.cli.ext.listener;
 
-import com.moilioncircle.redis.replicator.Replicator;
-import com.moilioncircle.redis.replicator.event.Event;
-import com.moilioncircle.redis.replicator.event.EventListener;
 import com.tair.cli.conf.Configure;
 
 /**
  * @author Baoyi Chen
  */
-public class RdbEventListener implements EventListener {
+public class RdbEventListener extends AbstractEventListener {
 	
 	private Integer rdbVersion;
 	private boolean convert;
@@ -34,10 +31,5 @@ public class RdbEventListener implements EventListener {
 		this.convert = convert;
 		this.configure = configure;
 		this.rdbVersion = rdbVersion;
-	}
-	
-	@Override
-	public void onEvent(Replicator replicator, Event event) {
-		
 	}
 }

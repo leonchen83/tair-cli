@@ -25,7 +25,6 @@ import com.moilioncircle.redis.replicator.event.PreCommandSyncEvent;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.ext.Filter;
 import com.tair.cli.ext.RedisScanReplicator;
-import com.tair.cli.ext.listener.MemoryEventListener;
 import com.tair.cli.ext.listener.RdbEventListener;
 
 import picocli.CommandLine;
@@ -48,7 +47,7 @@ public class XRdbCommand implements Callable<Integer> {
 	private XTairCli parent;
 	
 	@CommandLine.Option(names = {"--rdb-version"}, paramLabel = "<num>", description = {"Generate rdb version from 6 to 10. if not specified, use the source rdb version."}, type = Integer.class)
-	private Integer rdbVersion;
+	private Integer rdbVersion = -1;
 	
 	@CommandLine.Option(names = {"--convert"}, description = {"Whether convert tair module to normal data structure."})
 	private boolean convert;

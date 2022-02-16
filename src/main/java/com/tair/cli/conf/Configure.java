@@ -79,6 +79,26 @@ public class Configure {
     private int timeout = 60000;
     
     /**
+     * redis output stream buffer size
+     */
+    private int outputBufferSize = 8 * 1024;
+    
+    /**
+     * redis max output stream buffer size
+     */
+    private int maxOutputBufferSize = 512 * 1024 * 1024;
+    
+    /**
+     * temp file path
+     */
+    private String tempFilePath = null;
+    
+    /**
+     * temp file prefix
+     */
+    private String tempFilePrefix = "tair";
+    
+    /**
      * metric uri
      */
     private URI metricUri;
@@ -167,6 +187,38 @@ public class Configure {
     
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+    
+    public int getOutputBufferSize() {
+        return outputBufferSize;
+    }
+    
+    public void setOutputBufferSize(int outputBufferSize) {
+        this.outputBufferSize = outputBufferSize;
+    }
+    
+    public int getMaxOutputBufferSize() {
+        return maxOutputBufferSize;
+    }
+    
+    public void setMaxOutputBufferSize(int maxOutputBufferSize) {
+        this.maxOutputBufferSize = maxOutputBufferSize;
+    }
+    
+    public String getTempFilePath() {
+        return tempFilePath;
+    }
+    
+    public void setTempFilePath(String tempFilePath) {
+        this.tempFilePath = tempFilePath;
+    }
+    
+    public String getTempFilePrefix() {
+        return tempFilePrefix;
+    }
+    
+    public void setTempFilePrefix(String tempFilePrefix) {
+        this.tempFilePrefix = tempFilePrefix;
     }
     
     public URI getMetricUri() {
@@ -337,6 +389,10 @@ public class Configure {
         Configure conf = new Configure(properties);
         conf.batchSize = getInt(conf, "batch_size", 128, true);
         conf.timeout = getInt(conf, "timeout", 60000, true);
+        conf.outputBufferSize = getInt(conf, "output_buffer_size", 8 * 1024, true);
+        conf.maxOutputBufferSize = getInt(conf, "max_output_buffer_size", 512 * 1024 * 1024, true);
+        conf.tempFilePath = getString(conf, "temp_file_path", null, true);
+        conf.tempFilePrefix = getString(conf, "temp_file_prefix", "tair", true);
         conf.metricUser = getString(conf, "metric_user", "tair_cli", true);
         conf.metricPass = getString(conf, "metric_pass", "tair_cli", true);
         conf.metricUri = getUri(conf, "metric_uri", "http://localhost:8086", true);

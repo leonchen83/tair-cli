@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package com.tair.cli.ext;
+package com.tair.cli.util;
 
-import com.moilioncircle.redis.replicator.rdb.dump.datatype.DumpKeyValuePair;
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
+import com.tair.cli.ext.XDumpKeyValuePair;
 
 /**
  * @author Baoyi Chen
  */
-public class XDumpKeyValuePair extends DumpKeyValuePair {
-	private long memoryUsage;
-	private int version;
-	
-	public long getMemoryUsage() {
-		return memoryUsage;
-	}
-	
-	public void setMemoryUsage(long memoryUsage) {
-		this.memoryUsage = memoryUsage;
-	}
-	
-	public int getVersion() {
-		return version;
-	}
-	
-	public void setVersion(int version) {
-		this.version = version;
-	}
+public class Tuple2Ex extends Tuple2<Long, XDumpKeyValuePair> implements Comparable<Tuple2Ex> {
+
+    private static final long serialVersionUID = 1L;
+
+    public Tuple2Ex(Long v1, XDumpKeyValuePair v2) {
+        super(v1, v2);
+    }
+
+    @Override
+    public int compareTo(Tuple2Ex that) {
+        return Long.compare(this.getV1(), that.getV1());
+    }
 }

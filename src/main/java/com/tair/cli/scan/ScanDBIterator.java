@@ -83,6 +83,7 @@ public class ScanDBIterator implements Iterator<XDumpKeyValuePair> {
 		if (struct.memoryUsage != null) {
 			kv.setMemoryUsage(struct.memoryUsage.get());
 		}
+		kv.setVersion(rdbVersion);
 		index++;
 		if (index >= keys.getResult().size() && !keys.getCursor().equals("0")) {
 			keys = jedis.scan(keys.getCursorAsBytes(), new ScanParams().count(count));

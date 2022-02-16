@@ -22,7 +22,6 @@ import com.moilioncircle.redis.replicator.Replicator;
 import com.moilioncircle.redis.replicator.Replicators;
 import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
 import com.moilioncircle.redis.replicator.event.PreCommandSyncEvent;
-import com.moilioncircle.redis.replicator.event.PreRdbSyncEvent;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.ext.Filter;
 import com.tair.cli.ext.RedisScanReplicator;
@@ -51,14 +50,17 @@ public class XDumpCommand implements Callable<Integer> {
 	private boolean replace;
 	
 	@CommandLine.Option(names = {"--rdb-version"}, paramLabel = "<num>", description = {"Generate rdb version from 6 to 10. if not specified, use the source rdb version."}, type = Integer.class)
-	private Integer rdbVersion;
+	private Integer rdbVersion = -1;
+	
+	@CommandLine.Option(names = {"--convert"}, description = {"Whether convert tair module to normal data structure."})
+	private boolean convert;
 	
 	@Override
 	public Integer call() throws Exception {
 		Configure configure = Configure.bind();
 		Filter filter = new Filter(parent.regexs, parent.db, parent.type);
 		Replicator replicator = new RedisScanReplicator(parent.source, configure, filter);
-		replicator.addEventListener(new DumpEventListener(replace, rdbVersion, configure));
+		replicator.addEventListener(new DumpEventListener(replace, rdbVersion, convert, configure));
 		replicator.addExceptionListener((rep, tx, e) -> {
 			throw new RuntimeException(tx.getMessage(), tx);
 		});

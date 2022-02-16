@@ -16,26 +16,22 @@
 
 package com.tair.cli.ext.listener;
 
-import com.moilioncircle.redis.replicator.Replicator;
-import com.moilioncircle.redis.replicator.event.Event;
-import com.moilioncircle.redis.replicator.event.EventListener;
 import com.tair.cli.conf.Configure;
 
 /**
  * @author Baoyi Chen
  */
-public class RespEventListener implements EventListener {
+public class RespEventListener extends AbstractEventListener {
 	
+	private Integer batch;
 	private boolean replace;
+	private boolean convert;
 	private Configure configure;
 	
-	public RespEventListener(boolean replace, Configure configure) {
+	public RespEventListener(Integer batch, boolean replace, boolean convert, Configure configure) {
+		this.batch = batch;
 		this.replace = replace;
+		this.convert = convert;
 		this.configure = configure;
-	}
-	
-	@Override
-	public void onEvent(Replicator replicator, Event event) {
-		
 	}
 }
