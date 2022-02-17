@@ -78,6 +78,7 @@ public abstract class AbstractEventListener extends RdbValueVisitor implements E
 			setContext(dkv);
 			apply(dkv);
 		} else if (event instanceof PostRdbSyncEvent) {
+			OutputStreams.flushQuietly(out);
 			OutputStreams.closeQuietly(out);
 		}
 	}

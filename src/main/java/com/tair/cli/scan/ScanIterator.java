@@ -88,16 +88,13 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair> {
 		line = server.split("\n");
 		String version = line[1].split(":")[1];
 		version = version.substring(0, version.lastIndexOf('.'));
-		this.rdbVersion = VERSIONS.containsKey(version) ? VERSIONS.get(version) : 10;
+		if (VERSIONS.containsKey(version)) {
+			this.rdbVersion = VERSIONS.get(version);
+		} else {
+			throw new UnsupportedOperationException("unsupported source redis version :" + version);
+		}
 		if (!this.dbs.isEmpty()) {
 			this.iterator = new ScanDBIterator(this.dbs.get(index++), jedis, count, this.rdbVersion);
-		}
-	}
-	
-	public static void main(String[] args) {
-		ScanIterator it = new ScanIterator(null, new Jedis("127.0.0.1", 6328), 128);
-		while (it.hasNext()) {
-			System.out.println(it.next());
 		}
 	}
 	

@@ -110,8 +110,9 @@ public class RdbEventListener extends AbstractEventListener {
 				}
 				apply(dkv);
 			} else if (event instanceof PostRdbSyncEvent) {
-				OutputStreams.writeQuietly(Constants.RDB_MODULE_OPCODE_EOF, crcOut);
+				OutputStreams.writeQuietly(Constants.RDB_OPCODE_EOF, crcOut);
 				OutputStreams.writeQuietly(crcOut.getCRC64(), crcOut);
+				OutputStreams.flushQuietly(crcOut);
 				OutputStreams.closeQuietly(crcOut);
 			}
 		} catch (IOException e) {
@@ -139,7 +140,7 @@ public class RdbEventListener extends AbstractEventListener {
 	
 	private void applyKey(int type) throws IOException {
 		OutputStreams.write(type, crcOut);
-		encoder.rdbSaveEncodedStringObject(new ByteArray(getContext().getKey()), crcOut);
+		encoder.rdbGenericSaveStringObject(new ByteArray(getContext().getKey()), crcOut);
 	}
 	
 	public <T> T applyString(RedisInputStream in, int version) throws IOException {

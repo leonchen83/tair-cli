@@ -16,6 +16,9 @@
 
 package com.tair.cli.scan;
 
+import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START;
+import static redis.clients.jedis.params.ScanParams.SCAN_POINTER_START_BINARY;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -49,7 +52,7 @@ public class ScanDBIterator implements Iterator<XDumpKeyValuePair> {
 		this.count = count;
 		this.rdbVersion = rdbVersion;
 		jedis.select((int)db.getDbNumber());
-		keys = jedis.scan("0".getBytes(), new ScanParams().count(count));
+		keys = jedis.scan(SCAN_POINTER_START_BINARY, new ScanParams().count(count));
 		Pipeline pipeline = jedis.pipelined();
 		structs = new ArrayList<>(keys.getResult().size());
 		for (byte[] key : keys.getResult()) {
@@ -85,7 +88,7 @@ public class ScanDBIterator implements Iterator<XDumpKeyValuePair> {
 		}
 		kv.setVersion(rdbVersion);
 		index++;
-		if (index >= keys.getResult().size() && !keys.getCursor().equals("0")) {
+		if (index >= keys.getResult().size() && !keys.getCursor().equals(SCAN_POINTER_START)) {
 			keys = jedis.scan(keys.getCursorAsBytes(), new ScanParams().count(count));
 			Pipeline pipeline = jedis.pipelined();
 			structs = new ArrayList<>(keys.getResult().size());
@@ -104,6 +107,12 @@ public class ScanDBIterator implements Iterator<XDumpKeyValuePair> {
 	
 	private static class Struct {
 		
+		private byte[] key;
+		private Response<Long> ttl;
+		private Response<byte[]> dump;
+		private Response<Long> memoryUsage;
+		private long now = System.currentTimeMillis();
+		
 		public Struct(byte[] key, Response<Long> ttl, Response<byte[]> dump) {
 			this(key, null, ttl, dump);
 		}
@@ -114,11 +123,5 @@ public class ScanDBIterator implements Iterator<XDumpKeyValuePair> {
 			this.dump = dump;
 			this.memoryUsage = memoryUsage;
 		}
-		
-		private long now = System.currentTimeMillis();
-		private byte[] key;
-		private Response<Long> ttl;
-		private Response<byte[]> dump;
-		private Response<Long> memoryUsage;
 	}
 }

@@ -32,7 +32,7 @@ import picocli.CommandLine;
 /**
  * @author Baoyi Chen
  */
-@CommandLine.Command(name = "resp",
+@CommandLine.Command(name = "dump",
 		descriptionHeading = "Description: ",
 		description = "Convert source to resp format.",
 		separator = " ",

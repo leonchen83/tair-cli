@@ -44,7 +44,6 @@ public class JsonlEventListener extends AbstractEventListener {
 	
 	private boolean convert;
 	private Configure configure;
-	private boolean firstkey = true;
 	private Escaper escaper = new JsonEscaper();
 	
 	public JsonlEventListener(boolean convert, Configure configure) {
@@ -102,10 +101,6 @@ public class JsonlEventListener extends AbstractEventListener {
 	}
 	
 	protected void json(XDumpKeyValuePair context, Emitable emitable) throws IOException {
-		if (!firstkey) {
-			separator();
-		}
-		firstkey = false;
 		OutputStreams.write('{', out);
 		emitField("key", context.getKey());
 		OutputStreams.write(',', out);
@@ -126,6 +121,7 @@ public class JsonlEventListener extends AbstractEventListener {
 			}
 		}
 		OutputStreams.write('}', out);
+		separator();
 	}
 	
 	@Override

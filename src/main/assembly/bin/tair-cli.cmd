@@ -55,7 +55,7 @@ set CON_DIR=%CLI_HOME%\conf
 set LOG_FILE=%CON_DIR%\log4j2.xml
 set CON_FILE=%CON_DIR%\tair-cli.conf
 set MAIN_CLASS=com.tair.cli.TairCli
-set CLI_OPS=-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+ExitOnOutOfMemoryError -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Dlog4j.configurationFile="%LOG_FILE%" -Dcli.log.path="%LOG_DIR%" -Dconf="%CON_FILE%" -Dcli.home="%CLI_HOME%" -Dsun.stdout.encoding=UTF-8 -Dsun.err.encoding=UTF-8 -Dfile.encoding=UTF-8
+set CLI_OPS=-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+ExitOnOutOfMemoryError -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Dlog4j.configurationFile="%LOG_FILE%" -Dcli.log.path="%LOG_DIR%" -Dconf="%CON_FILE%" -Dcli.home="%CLI_HOME%" -Dsun.stderr.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.err.encoding=UTF-8 -Dfile.encoding=UTF-8
 
 "%JAVACMD%" %CLI_OPS% -cp %CLASS_PATH% %MAIN_CLASS% %*
 if ERRORLEVEL 1 goto error

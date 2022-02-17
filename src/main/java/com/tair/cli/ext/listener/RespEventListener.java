@@ -93,6 +93,7 @@ public class RespEventListener extends AbstractEventListener {
 				apply(dkv);
 			}
 		} else if (event instanceof PostRdbSyncEvent) {
+			OutputStreams.flushQuietly(out);
 			OutputStreams.closeQuietly(out);
 		}
 	}

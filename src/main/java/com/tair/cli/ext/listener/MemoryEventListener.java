@@ -54,7 +54,6 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	
 	//
 	private DB db;
-	private boolean firstkey = true;
 	
 	public MemoryEventListener(Integer limit, Long bytes, Configure configure) {
 		this.bytes = bytes;
@@ -118,7 +117,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 			for (Tuple2Ex tuple : heap.get(true)) {
 				accept(tuple);
 			}
-			
+			OutputStreams.flushQuietly(out);
 			OutputStreams.closeQuietly(out);
 			monitor.set("total_memory", totalMemory);
 			MonitorManager.closeQuietly(manager);
@@ -130,10 +129,6 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	}
 	
 	protected void json(XDumpKeyValuePair context) {
-		if (!firstkey) {
-			separator();
-		}
-		firstkey = false;
 		OutputStreams.write('{', out);
 		emitField("key", context.getKey());
 		OutputStreams.write(',', out);
@@ -152,6 +147,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 			}
 		}
 		OutputStreams.write('}', out);
+		separator();
 	}
 	
 	@Override
