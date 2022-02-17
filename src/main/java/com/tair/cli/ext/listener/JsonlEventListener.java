@@ -22,7 +22,6 @@ import static com.moilioncircle.redis.replicator.Constants.RDB_LOAD_NONE;
 import static com.moilioncircle.redis.replicator.rdb.BaseRdbParser.StringHelper.listPackEntry;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import com.moilioncircle.redis.rdb.cli.api.format.escape.Escaper;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
@@ -35,7 +34,6 @@ import com.tair.cli.escape.JsonEscaper;
 import com.tair.cli.escape.RedisEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
 import com.tair.cli.glossary.DataType;
-import com.tair.cli.io.BufferedOutputStream;
 import com.tair.cli.util.OutputStreams;
 
 /**
@@ -48,7 +46,6 @@ public class JsonlEventListener extends AbstractEventListener {
 	private Configure configure;
 	private boolean firstkey = true;
 	private Escaper escaper = new JsonEscaper();
-	private OutputStream out = new BufferedOutputStream(System.out, output);
 	
 	public JsonlEventListener(boolean convert, Configure configure) {
 		this.convert = convert;

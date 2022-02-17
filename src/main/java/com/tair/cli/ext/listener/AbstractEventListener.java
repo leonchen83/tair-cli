@@ -36,17 +36,21 @@ import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET_LISTPAC
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET_ZIPLIST;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.util.Objects;
 
 import com.moilioncircle.redis.replicator.Replicator;
 import com.moilioncircle.redis.replicator.event.Event;
 import com.moilioncircle.redis.replicator.event.EventListener;
+import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
 import com.moilioncircle.redis.replicator.rdb.RdbValueVisitor;
 import com.moilioncircle.redis.replicator.rdb.skip.SkipRdbParser;
 import com.moilioncircle.redis.replicator.util.ByteArray;
 import com.tair.cli.ext.XDumpKeyValuePair;
+import com.tair.cli.io.BufferedOutputStream;
+import com.tair.cli.util.OutputStreams;
 
 /**
  * @author Baoyi Chen
@@ -55,6 +59,7 @@ import com.tair.cli.ext.XDumpKeyValuePair;
 public abstract class AbstractEventListener extends RdbValueVisitor implements EventListener {
 	
 	protected int output = 8192;
+	protected OutputStream out = new BufferedOutputStream(System.out, output);
 	
 	protected XDumpKeyValuePair context;
 	
@@ -72,6 +77,8 @@ public abstract class AbstractEventListener extends RdbValueVisitor implements E
 			XDumpKeyValuePair dkv = (XDumpKeyValuePair) event; 
 			setContext(dkv);
 			apply(dkv);
+		} else if (event instanceof PostRdbSyncEvent) {
+			OutputStreams.closeQuietly(out);
 		}
 	}
 	

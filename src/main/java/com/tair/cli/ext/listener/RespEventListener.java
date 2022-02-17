@@ -43,6 +43,7 @@ import java.util.List;
 import com.moilioncircle.redis.rdb.cli.api.format.escape.Escaper;
 import com.moilioncircle.redis.replicator.Replicator;
 import com.moilioncircle.redis.replicator.event.Event;
+import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
 import com.moilioncircle.redis.replicator.rdb.BaseRdbParser;
 import com.moilioncircle.redis.replicator.rdb.datatype.ExpiredType;
@@ -51,7 +52,6 @@ import com.moilioncircle.redis.replicator.util.Strings;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.RawEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
-import com.tair.cli.io.BufferedOutputStream;
 import com.tair.cli.io.LayeredOutputStream;
 import com.tair.cli.util.ByteBuffers;
 import com.tair.cli.util.OutputStreams;
@@ -67,7 +67,6 @@ public class RespEventListener extends AbstractEventListener {
 	private boolean convert;
 	private Configure configure;
 	private Escaper escaper = new RawEscaper();
-	private OutputStream out = new BufferedOutputStream(System.out, output);
 	
 	public RespEventListener(boolean replace, boolean convert, Configure configure) {
 		this.replace = replace;
@@ -93,6 +92,8 @@ public class RespEventListener extends AbstractEventListener {
 			} else if (type == ExpiredType.NONE) {
 				apply(dkv);
 			}
+		} else if (event instanceof PostRdbSyncEvent) {
+			OutputStreams.closeQuietly(out);
 		}
 	}
 	

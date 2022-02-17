@@ -17,7 +17,6 @@
 package com.tair.cli.ext.listener;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.function.Consumer;
 
 import com.moilioncircle.redis.replicator.Replicator;
@@ -31,7 +30,6 @@ import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.JsonEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
 import com.tair.cli.glossary.DataType;
-import com.tair.cli.io.BufferedOutputStream;
 import com.tair.cli.monitor.MonitorFactory;
 import com.tair.cli.monitor.MonitorManager;
 import com.tair.cli.monitor.entity.Monitor;
@@ -53,7 +51,6 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	private long totalMemory;
 	private final CmpHeap<Tuple2Ex> heap;
 	private JsonEscaper escaper = new JsonEscaper();
-	private OutputStream out = new BufferedOutputStream(System.out, output);
 	
 	//
 	private DB db;
@@ -121,6 +118,8 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 			for (Tuple2Ex tuple : heap.get(true)) {
 				accept(tuple);
 			}
+			
+			OutputStreams.closeQuietly(out);
 			monitor.set("total_memory", totalMemory);
 			MonitorManager.closeQuietly(manager);
 		}
