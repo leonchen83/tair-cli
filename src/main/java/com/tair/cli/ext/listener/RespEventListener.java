@@ -23,8 +23,8 @@ import static com.moilioncircle.redis.replicator.Constants.RDB_LOAD_NONE;
 import static com.moilioncircle.redis.replicator.Constants.STAR;
 import static com.moilioncircle.redis.replicator.rdb.BaseRdbParser.StringHelper.listPackEntry;
 import static com.tair.cli.ext.RedisConstants.DEL;
-import static com.tair.cli.ext.RedisConstants.EXPIREAT;
 import static com.tair.cli.ext.RedisConstants.HMSET;
+import static com.tair.cli.ext.RedisConstants.PEXPIREAT;
 import static com.tair.cli.ext.RedisConstants.REPLACE_BUF;
 import static com.tair.cli.ext.RedisConstants.RESTORE_BUF;
 import static com.tair.cli.ext.RedisConstants.RPUSH;
@@ -88,7 +88,7 @@ public class RespEventListener extends AbstractEventListener {
 				long ms = dkv.getExpiredMs() - System.currentTimeMillis();
 				if (ms > 0) {
 					apply(dkv);
-					emit(this.out, EXPIREAT, dkv.getKey(), String.valueOf(dkv.getExpiredMs() / 1000).getBytes());
+					emit(this.out, PEXPIREAT, dkv.getKey(), String.valueOf(dkv.getExpiredMs()).getBytes());
 				}
 			} else if (type == ExpiredType.NONE) {
 				apply(dkv);

@@ -42,6 +42,7 @@ public class RedisConstants {
     public static final byte[] RESTORE = "restore".getBytes();
     public static final byte[] FUNCTION = "function".getBytes();
     public static final byte[] EXPIREAT = "expireat".getBytes();
+    public static final byte[] PEXPIREAT = "pexpireat".getBytes();
     public static final byte[] DESCRIPTION = "description".getBytes();
     public static final byte[] RESTORE_ASKING = "restore-asking".getBytes();
     
@@ -64,6 +65,7 @@ public class RedisConstants {
     public static final ByteBuffer RESTORE_BUF = ByteBuffer.wrap(RESTORE);
     public static final ByteBuffer FUNCTION_BUF = ByteBuffer.wrap(FUNCTION);
     public static final ByteBuffer EXPIREAT_BUF = ByteBuffer.wrap(EXPIREAT);
+    public static final ByteBuffer PEXPIREAT_BUF = ByteBuffer.wrap(PEXPIREAT);
     public static final ByteBuffer DESCRIPTION_BUF = ByteBuffer.wrap(DESCRIPTION);
     public static final ByteBuffer RESTORE_ASKING_BUF = ByteBuffer.wrap(RESTORE_ASKING);
 }

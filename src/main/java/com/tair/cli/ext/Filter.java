@@ -31,6 +31,11 @@ import com.tair.cli.glossary.DataType;
  */
 public class Filter {
 	
+	public Set<String> keys;
+	public List<Integer> dbs;
+	public List<Pattern> regexs;
+	public List<DataType> types;
+	
 	public Filter() {
 		this(null, null, null);
 	}
@@ -42,9 +47,4 @@ public class Filter {
 		this.regexs = regexs.stream().map(Pattern::compile).collect(toList());
 		this.types = DataType.parse(types == null ? new ArrayList<>() : types);
 	}
-	
-	public Set<String> keys;
-	public List<Integer> dbs;
-	public List<Pattern> regexs;
-	public List<DataType> types;
 }
