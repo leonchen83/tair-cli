@@ -34,7 +34,7 @@ import picocli.CommandLine;
  */
 @CommandLine.Command(name = "dump",
 		descriptionHeading = "Description: ",
-		description = "Convert source to resp format.",
+		description = "Convert source to dump format.",
 		separator = " ",
 		synopsisHeading = "",
 		optionListHeading = "Options:%n")
