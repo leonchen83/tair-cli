@@ -29,6 +29,7 @@ import static com.tair.cli.ext.RedisConstants.REPLACE_BUF;
 import static com.tair.cli.ext.RedisConstants.RESTORE_BUF;
 import static com.tair.cli.ext.RedisConstants.RPUSH;
 import static com.tair.cli.ext.RedisConstants.SADD;
+import static com.tair.cli.ext.RedisConstants.SELECT;
 import static com.tair.cli.ext.RedisConstants.SET;
 import static com.tair.cli.ext.RedisConstants.ZADD;
 import static com.tair.cli.ext.RedisConstants.ZERO_BUF;
@@ -46,6 +47,7 @@ import com.moilioncircle.redis.replicator.event.Event;
 import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
 import com.moilioncircle.redis.replicator.rdb.BaseRdbParser;
+import com.moilioncircle.redis.replicator.rdb.datatype.DB;
 import com.moilioncircle.redis.replicator.rdb.datatype.ExpiredType;
 import com.moilioncircle.redis.replicator.util.ByteArray;
 import com.moilioncircle.redis.replicator.util.Strings;
@@ -68,6 +70,9 @@ public class RespEventListener extends AbstractEventListener {
 	private Configure configure;
 	private Escaper escaper = new RawEscaper();
 	
+	//
+	private DB db;
+	
 	public RespEventListener(boolean replace, boolean convert, Configure configure) {
 		this.replace = replace;
 		this.convert = convert;
@@ -79,6 +84,10 @@ public class RespEventListener extends AbstractEventListener {
 	public void onEvent(Replicator replicator, Event event) {
 		if (event instanceof XDumpKeyValuePair) {
 			XDumpKeyValuePair dkv = (XDumpKeyValuePair) event;
+			if (db == null || db.getDbNumber() != dkv.getDb().getDbNumber()) {
+				db = dkv.getDb();
+				emit(this.out, SELECT, String.valueOf(db.getDbNumber()).getBytes());
+			}
 			setContext(dkv);
 			
 			//
