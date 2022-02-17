@@ -52,15 +52,12 @@ public class XRespCommand implements Callable<Integer> {
 	@CommandLine.Option(names = {"--convert"}, description = {"Whether convert tair module to normal data structure."})
 	private boolean convert;
 	
-	@CommandLine.Option(names = {"--batch"}, paramLabel = "<num>", description = {"Batch size of generated records"}, type = Integer.class)
-	private Integer batch = 64;
-	
 	@Override
 	public Integer call() throws Exception {
 		Configure configure = Configure.bind();
 		Filter filter = new Filter(parent.regexs, parent.db, parent.type);
 		Replicator replicator = new RedisScanReplicator(parent.source, configure, filter);
-		replicator.addEventListener(new RespEventListener(batch, replace, convert, configure));
+		replicator.addEventListener(new RespEventListener(replace, convert, configure));
 		replicator.addExceptionListener((rep, tx, e) -> {
 			throw new RuntimeException(tx.getMessage(), tx);
 		});

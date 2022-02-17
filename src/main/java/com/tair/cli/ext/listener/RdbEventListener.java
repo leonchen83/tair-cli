@@ -23,8 +23,8 @@ import com.tair.cli.conf.Configure;
  */
 public class RdbEventListener extends AbstractEventListener {
 	
-	private Integer rdbVersion;
 	private boolean convert;
+	private Integer rdbVersion;
 	private Configure configure;
 	
 	public RdbEventListener(Integer rdbVersion, boolean convert, Configure configure) {

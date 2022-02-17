@@ -31,6 +31,7 @@ import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.JsonEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
 import com.tair.cli.glossary.DataType;
+import com.tair.cli.io.BufferedOutputStream;
 import com.tair.cli.monitor.MonitorFactory;
 import com.tair.cli.monitor.MonitorManager;
 import com.tair.cli.monitor.entity.Monitor;
@@ -51,10 +52,12 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	private MonitorManager manager;
 	private long totalMemory;
 	private final CmpHeap<Tuple2Ex> heap;
-	private OutputStream out = System.out;
 	private JsonEscaper escaper = new JsonEscaper();
-	private boolean firstkey = true;
+	private OutputStream out = new BufferedOutputStream(System.out, output);
+	
+	//
 	private DB db;
+	private boolean firstkey = true;
 	
 	public MemoryEventListener(Integer limit, Long bytes, Configure configure) {
 		this.bytes = bytes;

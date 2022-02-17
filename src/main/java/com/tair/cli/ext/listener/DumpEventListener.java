@@ -46,6 +46,7 @@ import com.moilioncircle.redis.replicator.util.ByteArray;
 import com.moilioncircle.redis.replicator.util.Strings;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.RawEscaper;
+import com.tair.cli.io.BufferedOutputStream;
 import com.tair.cli.io.LayeredOutputStream;
 import com.tair.cli.util.ByteBuffers;
 import com.tair.cli.util.OutputStreams;
@@ -62,8 +63,8 @@ public class DumpEventListener extends AbstractEventListener {
 	private boolean convert;
 	private Integer rdbVersion;
 	private Configure configure;
-	private OutputStream out = System.out;
 	private Escaper escaper = new RawEscaper();
+	private OutputStream out = new BufferedOutputStream(System.out, output);
 	
 	public DumpEventListener(boolean replace, Integer rdbVersion, boolean convert, Configure configure) {
 		this.replace = replace;
