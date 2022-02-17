@@ -58,7 +58,7 @@ public class InfluxdbGateway implements MetricGateway {
         this.configure = configure;
         this.user = configure.getMetricUser();
         this.password = configure.getMetricPass();
-        this.instance = configure.getMetricInstance();
+        this.instance = configure.properties().getProperty("instance");
         this.url = configure.getMetricUri().toString();
         this.database = configure.getMetricDatabase();
         this.retention = configure.getMetricRetentionPolicy();

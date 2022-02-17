@@ -129,11 +129,6 @@ public class Configure {
     private String metricRetentionPolicy;
     
     /**
-     * metric instance
-     */
-    private String metricInstance;
-
-    /**
      * ssl parameter
      */
     private boolean sourceDefaultTruststore;
@@ -269,14 +264,6 @@ public class Configure {
         this.metricRetentionPolicy = metricRetentionPolicy;
     }
 
-    public String getMetricInstance() {
-        return metricInstance;
-    }
-
-    public void setMetricInstance(String metricInstance) {
-        this.metricInstance = metricInstance;
-    }
-
     public String getSourceKeystorePath() {
         return sourceKeystorePath;
     }
@@ -399,7 +386,6 @@ public class Configure {
         conf.metricGateway = Gateway.parse(getString(conf, "metric_gateway", "none", true));
         conf.metricDatabase = getString(conf, "metric_database", "tair_cli", true);
         conf.metricRetentionPolicy = getString(conf, "metric_retention_policy", "30days", true);
-        conf.metricInstance = getString(conf, "metric_instance", "instance0", true);
         
         // ssl
         conf.sourceKeystorePath = getString(conf, "source_keystore_path", null, true);
@@ -521,7 +507,6 @@ public class Configure {
                 ", metricGateway=" + metricGateway +
                 ", metricDatabase='" + metricDatabase + '\'' +
                 ", metricRetentionPolicy='" + metricRetentionPolicy + '\'' +
-                ", metricInstance='" + metricInstance + '\'' +
                 ", sourceDefaultTruststore=" + sourceDefaultTruststore +
                 ", sourceKeystorePath='" + sourceKeystorePath + '\'' +
                 ", sourceKeystorePass='" + sourceKeystorePass + '\'' +

@@ -120,6 +120,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 			OutputStreams.flushQuietly(out);
 			OutputStreams.closeQuietly(out);
 			monitor.set("total_memory", totalMemory);
+			monitor.set("last_update", System.currentTimeMillis());
 			MonitorManager.closeQuietly(manager);
 		}
 	}

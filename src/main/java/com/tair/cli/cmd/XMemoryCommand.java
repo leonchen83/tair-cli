@@ -18,6 +18,7 @@ package com.tair.cli.cmd;
 
 import java.util.concurrent.Callable;
 
+import com.moilioncircle.redis.replicator.RedisURI;
 import com.moilioncircle.redis.replicator.Replicator;
 import com.moilioncircle.redis.replicator.Replicators;
 import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
@@ -55,8 +56,11 @@ public class XMemoryCommand implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		Configure configure = Configure.bind();
+		RedisURI uri = new RedisURI(parent.source);
+		String hp = uri.getHost().replaceAll("\\.", "_") + "_" + uri.getPort();
+		configure.properties().setProperty("instance", hp);
 		Filter filter = new Filter(parent.regexs, parent.db, parent.type);
-		Replicator replicator = new RedisScanReplicator(parent.source, configure, filter);
+		Replicator replicator = new RedisScanReplicator(uri, configure, filter);
 		replicator.addEventListener(new MemoryEventListener(limit, bytes, configure));
 		replicator.addExceptionListener((rep, tx, e) -> {
 			throw new RuntimeException(tx.getMessage(), tx);
