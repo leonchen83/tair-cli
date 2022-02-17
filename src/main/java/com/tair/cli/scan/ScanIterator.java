@@ -59,6 +59,7 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair> {
 		VERSIONS.put("5.0", 9);
 		VERSIONS.put("6.0", 9);
 		VERSIONS.put("6.2", 9);
+		VERSIONS.put("6.9", 10);
 		VERSIONS.put("7.0", 10);
 	}
 	
