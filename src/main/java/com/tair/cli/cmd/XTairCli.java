@@ -19,7 +19,6 @@ package com.tair.cli.cmd;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 
 import com.tair.cli.cmd.support.XVersionProvider;
 
@@ -50,7 +49,7 @@ public class XTairCli implements Callable<Integer> {
 	List<Integer> db = new ArrayList<>();
 	
 	@CommandLine.Option(names = {"--key"}, arity = "1..*", paramLabel = "<regex>", description = {"Keys to export. this can be a regex. if not specified, all keys will be returned."}, scope = CommandLine.ScopeType.INHERIT)
-	List<Pattern> regexs = new ArrayList<>();
+	List<String> regexs = new ArrayList<>();
 	
 	@CommandLine.Option(names = {"--type"}, arity = "1..*", description = {"Data type to export. possible values are: string, hash, set, sortedset, list, module, stream. multiple types can be provided. if not specified, all data types will be returned."} , scope = CommandLine.ScopeType.INHERIT)
 	List<String> type = new ArrayList<>();

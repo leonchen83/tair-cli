@@ -16,8 +16,12 @@
 
 package com.tair.cli.ext;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.tair.cli.glossary.DataType;
@@ -27,6 +31,7 @@ import com.tair.cli.glossary.DataType;
  */
 public class Filter {
 	
+	public Set<String> keys;
 	public List<Integer> dbs;
 	public List<Pattern> regexs;
 	public List<DataType> types;
@@ -35,9 +40,11 @@ public class Filter {
 		this(null, null, null);
 	}
 	
-	public Filter(List<Pattern> regexs, List<Integer> dbs, List<String> types) {
+	public Filter(List<String> regexs, List<Integer> dbs, List<String> types) {
+		regexs = regexs == null ? new ArrayList<>() : regexs;
+		this.keys = new HashSet<>(regexs);
 		this.dbs = dbs == null ? new ArrayList<>() : dbs;
-		this.regexs = regexs == null ? new ArrayList<>() : regexs;
+		this.regexs = regexs.stream().map(Pattern::compile).collect(toList());
 		this.types = DataType.parse(types == null ? new ArrayList<>() : types);
 	}
 }

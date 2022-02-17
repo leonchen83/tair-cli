@@ -80,9 +80,7 @@ public class RedisScanReplicator extends AbstractReplicator {
 	}
 	
 	protected boolean containsKey(String key) {
-		if (filter.regexs == null || filter.regexs.isEmpty()) {
-			return true;
-		}
+		if (filter.keys.isEmpty() || filter.keys.contains(key)) return true;
 		for (Pattern pattern : filter.regexs) {
 			if (pattern.matcher(key).matches()) return true;
 		}
