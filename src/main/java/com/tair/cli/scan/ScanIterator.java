@@ -16,28 +16,37 @@
 
 package com.tair.cli.scan;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.moilioncircle.redis.replicator.rdb.datatype.DB;
 import com.tair.cli.ext.XDumpKeyValuePair;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisClientConfig;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * @author Baoyi Chen
  */
-public class ScanIterator implements Iterator<XDumpKeyValuePair> {
+public class ScanIterator implements Iterator<XDumpKeyValuePair>, Closeable {
 	
 	private int index;
 	private int count;
-	private Jedis jedis;
+	private int port;
+	private String host;
 	private List<DB> dbs;
 	private int rdbVersion;
+	private int retries = 5;
+	private volatile Jedis jedis;
 	private ScanDBIterator iterator;
+	private JedisClientConfig config;
 	
 	private static Map<String, Integer> VERSIONS = new HashMap<>();
 	
@@ -67,10 +76,36 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair> {
 		return rdbVersion;
 	}
 	
-	public ScanIterator(List<Integer> dbs, Jedis jedis, int count) {
-		this.jedis = jedis;
+	private void renew() {
+		if (this.jedis != null) {
+			try {
+				this.jedis.close();
+			} catch (Throwable ignore) {
+			}
+		}
+		this.jedis = new Jedis(host, port, config);
+	}
+	
+	<T> T retry(Function<Jedis, T> func) {
+		JedisConnectionException exception = null;
+		for (int i = 0; i < retries; i++) {
+			try {
+				return func.apply(jedis);
+			} catch (JedisConnectionException e) {
+				exception = e;
+				renew();
+			}
+		}
+		throw exception;
+	}
+	
+	public ScanIterator(List<Integer> dbs, String host, int port, JedisClientConfig config, int count) {
+		this.host = host;
+		this.port = port;
 		this.count = count;
-		String keyspace = jedis.info("keyspace");
+		this.config = config;
+		renew();
+		String keyspace = retry(e -> e.info("keyspace"));
 		String[] line = keyspace.split("\n");
 		this.dbs = new ArrayList<>();
 		for (int i = 1; i < line.length; i++) {
@@ -85,7 +120,7 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair> {
 			}
 		}
 		
-		String server = jedis.info("server");
+		String server = retry(e -> e.info("server"));
 		line = server.split("\n");
 		String version = line[1].split(":")[1];
 		version = version.substring(0, version.lastIndexOf('.'));
@@ -95,7 +130,7 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair> {
 			throw new UnsupportedOperationException("unsupported source redis version :" + version);
 		}
 		if (!this.dbs.isEmpty()) {
-			this.iterator = new ScanDBIterator(this.dbs.get(index++), jedis, count, this.rdbVersion);
+			this.iterator = new ScanDBIterator(this.dbs.get(index++), this, count, this.rdbVersion);
 		}
 	}
 	
@@ -108,8 +143,19 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair> {
 	public XDumpKeyValuePair next() {
 		XDumpKeyValuePair key = iterator.next();
 		if (!iterator.hasNext() && index < this.dbs.size()) {
-			iterator = new ScanDBIterator(this.dbs.get(index++), jedis, count, this.rdbVersion);
+			iterator = new ScanDBIterator(this.dbs.get(index++), this, count, this.rdbVersion);
 		}
 		return key;
+	}
+	
+	@Override
+	public void close() throws IOException {
+		try {
+			if (jedis != null) {
+				jedis.close();
+			}
+		} catch (Throwable e) {
+			throw new IOException(e);
+		}
 	}
 }

@@ -35,7 +35,6 @@ import com.tair.cli.glossary.DataType;
 import com.tair.cli.scan.ScanIterator;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.Jedis;
 
 /**
  * @author Baoyi Chen
@@ -44,8 +43,8 @@ public class RedisScanReplicator extends AbstractReplicator {
 	protected final int port;
 	protected final String host;
 	protected final Filter filter;
-	protected volatile Jedis jedis;
 	protected final Configure configure;
+	protected volatile ScanIterator iterator;
 	protected final DefaultJedisClientConfig config;
 	
 	public RedisScanReplicator(String uri, Configure configure, Filter filter) throws URISyntaxException {
@@ -94,8 +93,7 @@ public class RedisScanReplicator extends AbstractReplicator {
 	@Override
 	protected void doOpen() throws IOException {
 		try {
-			this.jedis = new Jedis(host, port, config);
-			ScanIterator iterator = new ScanIterator(filter.dbs, jedis, configure.getBatchSize());
+			iterator = new ScanIterator(filter.dbs, host, port, config, configure.getBatchSize());
 			submitEvent(new PreRdbSyncEvent());
 			while (iterator.hasNext() && getStatus() == CONNECTED) {
 				XDumpKeyValuePair kv = iterator.next();
@@ -111,8 +109,10 @@ public class RedisScanReplicator extends AbstractReplicator {
 	protected void doClose() throws IOException {
 		compareAndSet(CONNECTED, DISCONNECTING);
 		try {
-			if (jedis != null) jedis.close();
-		} catch (Throwable ignore) {
+			if (iterator != null) {
+				iterator.close();
+			}
+		} catch (IOException ignore) {
 			/*NOP*/
 		} finally {
 			setStatus(DISCONNECTED);

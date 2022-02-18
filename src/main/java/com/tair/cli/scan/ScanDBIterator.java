@@ -27,7 +27,6 @@ import com.moilioncircle.redis.replicator.rdb.datatype.DB;
 import com.moilioncircle.redis.replicator.rdb.datatype.ExpiredType;
 import com.tair.cli.ext.XDumpKeyValuePair;
 
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.params.ScanParams;
@@ -41,28 +40,33 @@ public class ScanDBIterator implements Iterator<XDumpKeyValuePair> {
 	private DB db;
 	private int index;
 	private int count;
-	private Jedis jedis;
-	private List<Struct> structs;
-	private ScanResult<byte[]> keys;
 	private int rdbVersion;
+	private List<Struct> structs;
+	private ScanIterator iterator;
+	private ScanResult<byte[]> keys;
 	
-	public ScanDBIterator(DB db, Jedis jedis, int count, int rdbVersion) {
+	public ScanDBIterator(DB db, ScanIterator iterator, int count, int rdbVersion) {
 		this.db = db;
-		this.jedis = jedis;
 		this.count = count;
+		this.iterator = iterator;
 		this.rdbVersion = rdbVersion;
-		jedis.select((int)db.getDbNumber());
-		keys = jedis.scan(SCAN_POINTER_START_BINARY, new ScanParams().count(count));
-		Pipeline pipeline = jedis.pipelined();
-		structs = new ArrayList<>(keys.getResult().size());
-		for (byte[] key : keys.getResult()) {
-			if (rdbVersion >= 8) {
-				structs.add(new Struct(key, pipeline.memoryUsage(key), pipeline.pttl(key), pipeline.dump(key)));
-			} else {
-				structs.add(new Struct(key, pipeline.pttl(key), pipeline.dump(key)));
+		iterator.retry(e -> e.select((int)db.getDbNumber()));
+		keys = iterator.retry(e -> e.scan(SCAN_POINTER_START_BINARY, new ScanParams().count(count)));
+		
+		iterator.retry(e -> {
+			Pipeline pipeline = e.pipelined();
+			structs = new ArrayList<>(keys.getResult().size());
+			for (byte[] key : keys.getResult()) {
+				if (rdbVersion >= 8) {
+					structs.add(new Struct(key, pipeline.memoryUsage(key), pipeline.pttl(key), pipeline.dump(key)));
+				} else {
+					structs.add(new Struct(key, pipeline.pttl(key), pipeline.dump(key)));
+				}
 			}
-		}
-		pipeline.sync();
+			pipeline.sync();
+			return null;
+		});
+		
 	}
 	
 	@Override
@@ -89,17 +93,20 @@ public class ScanDBIterator implements Iterator<XDumpKeyValuePair> {
 		kv.setVersion(rdbVersion);
 		index++;
 		if (index >= keys.getResult().size() && !keys.getCursor().equals(SCAN_POINTER_START)) {
-			keys = jedis.scan(keys.getCursorAsBytes(), new ScanParams().count(count));
-			Pipeline pipeline = jedis.pipelined();
-			structs = new ArrayList<>(keys.getResult().size());
-			for (byte[] key : keys.getResult()) {
-				if (rdbVersion >= 8) {
-					structs.add(new Struct(key, pipeline.memoryUsage(key), pipeline.pttl(key), pipeline.dump(key)));
-				} else {
-					structs.add(new Struct(key, pipeline.pttl(key), pipeline.dump(key)));
+			keys = iterator.retry(e -> e.scan(keys.getCursorAsBytes(), new ScanParams().count(count)));
+			iterator.retry(e -> {
+				Pipeline pipeline = e.pipelined();
+				structs = new ArrayList<>(keys.getResult().size());
+				for (byte[] key : keys.getResult()) {
+					if (rdbVersion >= 8) {
+						structs.add(new Struct(key, pipeline.memoryUsage(key), pipeline.pttl(key), pipeline.dump(key)));
+					} else {
+						structs.add(new Struct(key, pipeline.pttl(key), pipeline.dump(key)));
+					}
 				}
-			}
-			pipeline.sync();
+				pipeline.sync();
+				return null;
+			});
 			index = 0;
 		}
 		return kv;
