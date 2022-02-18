@@ -70,6 +70,7 @@ public class RdbEventListener extends AbstractEventListener {
 	private Integer rdbVersion;
 	private Configure configure;
 	private CRCOutputStream crcOut;
+	private boolean writeVersion = false;
 	private BaseRdbEncoder encoder = new BaseRdbEncoder();
 	
 	private DB db;
@@ -90,12 +91,16 @@ public class RdbEventListener extends AbstractEventListener {
 		try {
 			if (event instanceof PreRdbSyncEvent) {
 				OutputStreams.writeQuietly("REDIS".getBytes(), crcOut);
-				String version = Strings.lappend(rdbVersion, 4, '0');
-				OutputStreams.writeQuietly(version.getBytes(), crcOut);
 			} else if (event instanceof XDumpKeyValuePair) {
-				
 				XDumpKeyValuePair dkv = (XDumpKeyValuePair) event;
 				setContext(dkv);
+				
+				if (!writeVersion) {
+					String version = Strings.lappend(getVersion(dkv.getVersion()), 4, '0');
+					OutputStreams.writeQuietly(version.getBytes(), crcOut);
+					writeVersion = true;
+				}
+				
 				if (db == null || db.getDbNumber() != dkv.getDb().getDbNumber()) {
 					db = dkv.getDb();
 					OutputStreams.write(RDB_OPCODE_SELECTDB, crcOut);
