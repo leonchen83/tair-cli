@@ -53,19 +53,5 @@ public class TairHash extends AbstractTair {
 			encoder.rdbGenericSaveStringObject(new ByteArray(field), out);
 			encoder.rdbGenericSaveStringObject(new ByteArray(value), out);
 		}
-		
-//		BaseRdbParser parser = new BaseRdbParser(in);
-//		int opcode;
-//		while ((opcode = (int) parser.rdbLoadLen().len) != RDB_MODULE_OPCODE_EOF) {
-//			if (opcode == RDB_MODULE_OPCODE_SINT || opcode == RDB_MODULE_OPCODE_UINT) {
-//				System.out.println(parser.rdbLoadLen().len);
-//			} else if (opcode == RDB_MODULE_OPCODE_STRING) {
-//				System.out.println(new String(parser.rdbLoadPlainStringObject().first()));
-//			} else if (opcode == RDB_MODULE_OPCODE_FLOAT) {
-//				System.out.println(parser.rdbLoadBinaryFloatValue());
-//			} else if (opcode == RDB_MODULE_OPCODE_DOUBLE) {
-//				System.out.println(parser.rdbLoadBinaryDoubleValue());
-//			}
-//		}
 	}
 }
