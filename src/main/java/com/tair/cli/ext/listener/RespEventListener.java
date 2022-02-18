@@ -527,6 +527,7 @@ public class RespEventListener extends AbstractEventListener {
 			ByteArrayOutputStream out = new ByteArrayOutputStream(128);
 			tair.convertToRdbValue(in, out);
 			RedisInputStream sin = new RedisInputStream(new ByteArray(out.toByteArray()));
+			getContext().setValueRdbType(tair.type());
 			switch (tair.type()) {
 				case RDB_TYPE_STRING:
 					applyString(sin, version);

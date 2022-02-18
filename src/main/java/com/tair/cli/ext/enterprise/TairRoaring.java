@@ -48,7 +48,6 @@ public class TairRoaring extends AbstractTair {
 		RawByteListener listener = new RawByteListener() {
 			@Override
 			public void handle(byte... rawBytes) {
-				System.out.println(Arrays.toString(rawBytes));
 				builder.put(rawBytes);
 			}
 		};
@@ -60,7 +59,6 @@ public class TairRoaring extends AbstractTair {
 			in.setRawByteListeners(null);
 		}
 		byte[] value = builder.array();
-		System.out.println(Arrays.toString(value));
 		encoder.rdbGenericSaveStringObject(new ByteArray(value), out);
 	}
 }
