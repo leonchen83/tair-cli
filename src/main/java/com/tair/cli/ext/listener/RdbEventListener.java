@@ -52,6 +52,8 @@ import com.moilioncircle.redis.replicator.util.ByteArray;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.RawEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
+import com.tair.cli.ext.enterprise.Tair;
+import com.tair.cli.ext.enterprise.Tairs;
 import com.tair.cli.io.CRCOutputStream;
 import com.tair.cli.util.OutputStreams;
 import com.tair.cli.util.Strings;
@@ -465,9 +467,9 @@ public class RdbEventListener extends AbstractEventListener {
 				}
 			}
 		} else {
-			// TODO parse tair module
-			applyKey(getContext().getValueRdbType());
-			super.applyModule2(in, version);
+			Tair tair = Tairs.get(in);
+			applyKey(tair.type());
+			tair.convertToRdbValue(in, crcOut);
 			return (T) getContext();
 		}
 		

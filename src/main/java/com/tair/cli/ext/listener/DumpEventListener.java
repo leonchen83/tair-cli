@@ -52,6 +52,9 @@ import com.moilioncircle.redis.replicator.util.Strings;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.RawEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
+import com.tair.cli.ext.enterprise.Tair;
+import com.tair.cli.ext.enterprise.Tairs;
+import com.tair.cli.io.CRCOutputStream;
 import com.tair.cli.io.LayeredOutputStream;
 import com.tair.cli.util.ByteBuffers;
 import com.tair.cli.util.OutputStreams;
@@ -567,17 +570,16 @@ public class DumpEventListener extends AbstractEventListener {
 	
 	@Override
 	public <T> T applyModule2(RedisInputStream in, int version) throws IOException {
-		if (!convert) {
-			ByteBuffer ex = ZERO_BUF;
-			if (context.getExpiredValue() != null) {
-				long ms = context.getExpiredValue() - System.currentTimeMillis();
-				if (ms <= 0) {
-					return super.applyModule2(in, version);
-				} else {
-					ex = wrap(String.valueOf(ms).getBytes());
-				}
+		ByteBuffer ex = ZERO_BUF;
+		if (context.getExpiredValue() != null) {
+			long ms = context.getExpiredValue() - System.currentTimeMillis();
+			if (ms <= 0) {
+				return super.applyModule2(in, version);
+			} else {
+				ex = wrap(String.valueOf(ms).getBytes());
 			}
-			
+		}
+		if (!convert) {
 			try (LayeredOutputStream out = new LayeredOutputStream(configure)) {
 				try (DumpRawByteListener listener = new DumpRawByteListener(in, getVersion(version), out, escaper)) {
 					listener.write((byte) context.getValueRdbType());
@@ -587,9 +589,17 @@ public class DumpEventListener extends AbstractEventListener {
 				return (T) getContext();
 			}
 		} else {
-			// TODO parse tair module
-			super.applyModule2(in, version);
-			return (T) getContext();
+			Tair tair = Tairs.get(in);
+			try (LayeredOutputStream out = new LayeredOutputStream(configure)) {
+				CRCOutputStream crcOut = new CRCOutputStream(out, escaper);
+				OutputStreams.writeQuietly(tair.type(), crcOut);
+				tair.convertToRdbValue(in, crcOut);
+				OutputStreams.writeQuietly(version, crcOut);
+				OutputStreams.writeQuietly(0x00, crcOut);
+				OutputStreams.writeQuietly(crcOut.getCRC64(), crcOut);
+				emit(this.out, RESTORE_BUF, wrap(getContext().getKey()), ex, out.toByteBuffers(), replace);
+				return (T) getContext();
+			}
 		}
 	}
 	

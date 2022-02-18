@@ -20,6 +20,9 @@ import static com.moilioncircle.redis.replicator.Constants.DOLLAR;
 import static com.moilioncircle.redis.replicator.Constants.QUICKLIST_NODE_CONTAINER_PACKED;
 import static com.moilioncircle.redis.replicator.Constants.QUICKLIST_NODE_CONTAINER_PLAIN;
 import static com.moilioncircle.redis.replicator.Constants.RDB_LOAD_NONE;
+import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_HASH;
+import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STRING;
+import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET;
 import static com.moilioncircle.redis.replicator.Constants.STAR;
 import static com.moilioncircle.redis.replicator.rdb.BaseRdbParser.StringHelper.listPackEntry;
 import static com.tair.cli.ext.RedisConstants.DEL;
@@ -35,6 +38,7 @@ import static com.tair.cli.ext.RedisConstants.ZADD;
 import static com.tair.cli.ext.RedisConstants.ZERO_BUF;
 import static java.nio.ByteBuffer.wrap;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -54,6 +58,8 @@ import com.moilioncircle.redis.replicator.util.Strings;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.RawEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
+import com.tair.cli.ext.enterprise.Tair;
+import com.tair.cli.ext.enterprise.Tairs;
 import com.tair.cli.io.LayeredOutputStream;
 import com.tair.cli.util.ByteBuffers;
 import com.tair.cli.util.OutputStreams;
@@ -517,8 +523,23 @@ public class RespEventListener extends AbstractEventListener {
 				return (T) getContext();
 			}
 		} else {
-			// TODO
-			super.applyModule2(in, version);
+			Tair tair = Tairs.get(in);
+			ByteArrayOutputStream out = new ByteArrayOutputStream(128);
+			tair.convertToRdbValue(in, out);
+			RedisInputStream sin = new RedisInputStream(new ByteArray(out.toByteArray()));
+			switch (tair.type()) {
+				case RDB_TYPE_STRING:
+					applyString(sin, version);
+					break;
+				case RDB_TYPE_HASH:
+					applyHash(sin, version);
+					break;
+				case RDB_TYPE_ZSET:
+					applyZSet(sin, version);
+					break;
+				default:
+					throw new UnsupportedOperationException(String.valueOf(tair.type()));
+			}
 			return (T) getContext();
 		}
 	}
