@@ -42,7 +42,7 @@ public class TairHash extends AbstractTair {
 		
 		long len = parser.loadSigned(2);
 		byte[] key = parser.loadStringBuffer(2); // skip key
-		parser.loadSigned(2); // a wired value?
+		parser.loadSigned(2); // a weird value?
 		
 		encoder.rdbSaveLen(len, out);
 		for (long i = 0; i < len; i++) {

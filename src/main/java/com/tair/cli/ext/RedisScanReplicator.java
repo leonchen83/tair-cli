@@ -41,10 +41,10 @@ import redis.clients.jedis.Jedis;
  * @author Baoyi Chen
  */
 public class RedisScanReplicator extends AbstractReplicator {
-	protected Jedis jedis;
 	protected final int port;
 	protected final String host;
 	protected final Filter filter;
+	protected volatile Jedis jedis;
 	protected final Configure configure;
 	protected final DefaultJedisClientConfig config;
 	

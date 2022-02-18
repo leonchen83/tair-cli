@@ -31,6 +31,7 @@ import com.moilioncircle.redis.replicator.rdb.module.ModuleKey;
  */
 public class Tairs {
 	
+	// weird name
 	private static ModuleKey TAIR_STRING = ModuleKey.key("exstrtype", 1);
 	private static ModuleKey TAIR_HASH = ModuleKey.key("exhash---", 0);
 	private static ModuleKey TAIR_DOC = ModuleKey.key("tair-json", 0);
