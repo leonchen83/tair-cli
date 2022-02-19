@@ -93,6 +93,8 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	public void onEvent(Replicator replicator, Event event) {
 		if (event instanceof PreRdbSyncEvent) {
 			manager.reset("memory_statistics");
+			long now = System.currentTimeMillis();
+			monitor.setLong("monitor", configure.get("instance"), now);
 		} else if (event instanceof XDumpKeyValuePair) {
 			XDumpKeyValuePair dkv = (XDumpKeyValuePair) event;
 			setContext(dkv);

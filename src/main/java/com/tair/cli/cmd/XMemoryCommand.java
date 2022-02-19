@@ -58,7 +58,7 @@ public class XMemoryCommand implements Callable<Integer> {
 		Configure configure = Configure.bind();
 		RedisURI uri = new RedisURI(parent.source);
 		String hp = uri.getHost().replaceAll("\\.", "_") + "_" + uri.getPort();
-		configure.properties().setProperty("instance", hp);
+		configure.set("instance", hp);
 		Filter filter = new Filter(parent.regexs, parent.db, parent.type);
 		Replicator replicator = new RedisScanReplicator(uri, configure, filter);
 		replicator.addEventListener(new MemoryEventListener(limit, bytes, configure));

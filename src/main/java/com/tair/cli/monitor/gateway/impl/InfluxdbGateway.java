@@ -62,7 +62,7 @@ public class InfluxdbGateway implements MetricGateway {
         this.configure = configure;
         this.user = configure.getMetricUser();
         this.password = configure.getMetricPass();
-        this.instance = configure.properties().getProperty("instance");
+        this.instance = configure.get("instance");
         this.url = configure.getMetricUri().toString();
         this.database = configure.getMetricDatabase();
         this.retention = configure.getMetricRetentionPolicy();
@@ -72,7 +72,11 @@ public class InfluxdbGateway implements MetricGateway {
     @Override
     public void reset(String measurement) {
         if (this.influxdb != null) {
-            this.influxdb.query(new Query("drop series from \"" + measurement + "\" where instance = '" + instance + "'", database));
+            try {
+                this.influxdb.query(new Query("drop series from \"" + measurement + "\" where instance = '" + instance + "'", database));
+            } catch (Throwable e) {
+                logger.error("failed to reset measurement [{}].", measurement, e);
+            }
         }
     }
 

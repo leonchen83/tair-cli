@@ -67,6 +67,14 @@ public class Configure {
     public Properties properties() {
         return this.properties;
     }
+    
+    public String get(String property) {
+        return this.properties.getProperty(property);
+    }
+    
+    public void set(String key, String property) {
+        this.properties.setProperty(key, property);
+    }
 
     /**
      * rct --format resp batch size

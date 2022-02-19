@@ -43,11 +43,13 @@ public class XMonitorCommand implements Runnable, Closeable {
 	
 	private final String host;
 	private final int port;
+	private Configure configure;
 	private MonitorManager manager;
 	protected final DefaultJedisClientConfig config;
 	private static final Monitor monitor = MonitorFactory.getMonitor("tair_monitor");
 	
 	public XMonitorCommand(RedisURI uri, Configure configure) {
+		this.configure = configure;
 		this.manager = new MonitorManager(configure);
 		this.manager.open("tair_monitor");
 		Configuration configuration = configure.merge(uri, true);
@@ -67,6 +69,8 @@ public class XMonitorCommand implements Runnable, Closeable {
 			Map<String, Map<String, String>> map = convert(info);
 			
 			// Server
+			long now = System.currentTimeMillis();
+			monitor.setLong("monitor", configure.get("instance"), now);
 			setLong("Server", "uptime_in_seconds", map);
 			setString("Server", "redis_version", map);
 			setString("Replication", "role", map);
@@ -103,6 +107,8 @@ public class XMonitorCommand implements Runnable, Closeable {
 			// CPU
 			setDouble("CPU", "used_cpu_sys", map);
 			setDouble("CPU", "used_cpu_user", map);
+			setDouble("CPU", "used_cpu_sys_children", map);
+			setDouble("CPU", "used_cpu_user_children", map);
 			monitorDB(map);
 		}
 		delay(30, TimeUnit.SECONDS);
@@ -117,8 +123,6 @@ public class XMonitorCommand implements Runnable, Closeable {
 				logger.error("failed to monitor long attribute [{}]", field);
 			}
 		}
-		
-		
 	}
 	
 	private void setDouble(String key, String field, Map<String, Map<String, String>> map) {
@@ -146,6 +150,8 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private void monitorDB(Map<String, Map<String, String>> map) {
 		try {
 			Map<String, String> value = map.get("Keyspace");
+			long totalCount = 0L;
+			long totalExpire = 0L;
 			for (Map.Entry<String, String> entry : value.entrySet()) {
 				String key = entry.getKey();
 				String[] ary = entry.getValue().split(",");
@@ -153,7 +159,11 @@ public class XMonitorCommand implements Runnable, Closeable {
 				long expires = Long.parseLong(ary[1].split("=")[1]);
 				monitor.setLong("dbnum", key, dbsize);
 				monitor.setLong("dbexp", key, expires);
+				totalCount += dbsize;
+				totalExpire += expires;
 			}
+			monitor.setLong("total_dbnum", totalCount);
+			monitor.setLong("total_dbexp", totalExpire);
 		} catch (NumberFormatException e) {
 			logger.error("failed to monitor db info");
 		}
