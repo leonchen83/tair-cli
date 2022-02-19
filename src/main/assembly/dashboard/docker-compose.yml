@@ -17,8 +17,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - "GF_SECURITY_ADMIN_USER=admin"
-      - "GF_SECURITY_ADMIN_PASSWORD=admin"
+      - "GF_SECURITY_ADMIN_USER=tair-cli"
+      - "GF_SECURITY_ADMIN_PASSWORD=tair-cli"
     volumes:
       - ./grafana/provisioning/:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
