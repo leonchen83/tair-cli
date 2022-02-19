@@ -17,7 +17,6 @@
 package com.tair.cli.cmd;
 
 import java.io.Closeable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -147,11 +146,9 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private void monitorDB(Map<String, Map<String, String>> map) {
 		try {
 			Map<String, String> value = map.get("Keyspace");
-			System.out.println(value);
 			for (Map.Entry<String, String> entry : value.entrySet()) {
 				String key = entry.getKey();
 				String[] ary = entry.getValue().split(",");
-				System.out.println(Arrays.toString(ary));
 				long dbsize = Long.parseLong(ary[0].split("=")[1]);
 				long expires = Long.parseLong(ary[1].split("=")[1]);
 				monitor.setLong("dbnum", key, dbsize);
