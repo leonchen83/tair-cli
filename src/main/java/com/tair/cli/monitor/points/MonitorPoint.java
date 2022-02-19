@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.tair.cli.monitor;
+package com.tair.cli.monitor.points;
 
 import static com.tair.cli.monitor.MonitorType.COUNTER;
 import static com.tair.cli.monitor.MonitorType.GAUGE;
 
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
+import com.tair.cli.monitor.MonitorType;
 import com.tair.cli.monitor.entity.Counter;
 import com.tair.cli.monitor.entity.Gauge;
 import com.tair.cli.monitor.entity.Monitor;

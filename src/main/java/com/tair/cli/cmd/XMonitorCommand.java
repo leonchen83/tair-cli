@@ -17,6 +17,7 @@
 package com.tair.cli.cmd;
 
 import java.io.Closeable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -65,51 +66,96 @@ public class XMonitorCommand implements Runnable, Closeable {
 		try(Jedis jedis = new Jedis(host, port, config)) {
 			String info = jedis.info();
 			Map<String, Map<String, String>> map = convert(info);
-			set("Server", "uptime_in_seconds", map);
-			//
-			set("Clients", "connected_clients", map);
-			set("Clients", "client_recent_max_input_buffer", map);
-			set("Clients", "client_recent_max_output_buffer", map);
-			set("Clients", "blocked_clients", map);
-			set("Clients", "tracking_clients", map);
-			//
-			set("Memory", "used_memory", map);
-			set("Memory", "maxmemory", map);
-			set("Memory", "total_system_memory", map);
-			//
-			set("Persistence", "rdb_last_save_time", map);
-			//
-			set("Stats", "total_connections_received", map);
-			set("Stats", "total_commands_processed", map);
-			set("Stats", "total_net_input_bytes", map);
-			set("Stats", "total_net_output_bytes", map);
-			set("Stats", "expired_keys", map);
-			set("Stats", "evicted_keys", map);
 			
+			// Server
+			setLong("Server", "uptime_in_seconds", map);
+			setString("Server", "redis_version", map);
+			setString("Replication", "role", map);
+			
+			// Clients
+			setLong("Clients", "connected_clients", map);
+			setLong("Clients", "client_recent_max_input_buffer", map);
+			setLong("Clients", "client_recent_max_output_buffer", map);
+			setLong("Clients", "blocked_clients", map);
+			setLong("Clients", "tracking_clients", map); // ?
+			
+			// Memory
+			setLong("Memory", "maxmemory", map);
+			setLong("Memory", "used_memory", map);
+			setLong("Memory", "used_memory_lua", map);
+			setLong("Memory", "total_system_memory", map); // ?
+			
+			// Stats
+			setLong("Stats", "total_connections_received", map);
+			setLong("Stats", "total_commands_processed", map);
+			setLong("Stats", "total_net_input_bytes", map);
+			setLong("Stats", "total_net_output_bytes", map);
+			setLong("Stats", "expired_keys", map);
+			setLong("Stats", "evicted_keys", map);
+			setLong("Stats", "evicted_keys_per_sec", map);
+			setLong("Stats", "instantaneous_ops_per_sec", map);
+			setLong("Stats", "instantaneous_write_ops_per_sec", map);
+			setLong("Stats", "instantaneous_read_ops_per_sec", map);
+			setLong("Stats", "instantaneous_other_ops_per_sec", map);
+			setLong("Stats", "instantaneous_sync_write_ops_per_sec", map);
+			setDouble("Stats", "instantaneous_input_kbps", map);
+			setDouble("Stats", "instantaneous_output_kbps", map);
+			
+			// CPU
+			setDouble("CPU", "used_cpu_sys", map);
+			setDouble("CPU", "used_cpu_user", map);
 			monitorDB(map);
 		}
 		delay(30, TimeUnit.SECONDS);
 	}
 	
-	private void set(String key, String field, Map<String, Map<String, String>> map) {
-		String value = map.get(key).get(field);
-		try {
-			monitor.set(field, Long.parseLong(value));
-		} catch (NumberFormatException e) {
-			logger.error("failed to monitor attribute [{}]", field);
+	private void setLong(String key, String field, Map<String, Map<String, String>> map) {
+		if (map.containsKey(key) && map.get(key).containsKey(field)) {
+			String value = map.get(key).get(field);
+			try {
+				monitor.setLong(field, Long.parseLong(value));
+			} catch (NumberFormatException e) {
+				logger.error("failed to monitor long attribute [{}]", field);
+			}
+		}
+		
+		
+	}
+	
+	private void setDouble(String key, String field, Map<String, Map<String, String>> map) {
+		if (map.containsKey(key) && map.get(key).containsKey(field)) {
+			String value = map.get(key).get(field);
+			try {
+				monitor.setDouble(field, Double.parseDouble(value));
+			} catch (NumberFormatException e) {
+				logger.error("failed to monitor double attribute [{}]", field);
+			}
+		}
+	}
+	
+	private void setString(String key, String field, Map<String, Map<String, String>> map) {
+		if (map.containsKey(key) && map.get(key).containsKey(field)) {
+			String value = map.get(key).get(field);
+			try {
+				monitor.setString(field, value);
+			} catch (NumberFormatException e) {
+				logger.error("failed to monitor string attribute [{}]", field);
+			}
 		}
 	}
 	
 	private void monitorDB(Map<String, Map<String, String>> map) {
 		try {
 			Map<String, String> value = map.get("Keyspace");
+			System.out.println(value);
 			for (Map.Entry<String, String> entry : value.entrySet()) {
-				String key = entry.getKey().substring(2);
+				String key = entry.getKey();
 				String[] ary = entry.getValue().split(",");
+				System.out.println(Arrays.toString(ary));
 				long dbsize = Long.parseLong(ary[0].split("=")[1]);
 				long expires = Long.parseLong(ary[1].split("=")[1]);
-				monitor.set("dbnum_" + key, dbsize);
-				monitor.set("dbexp_" + key, expires);
+				monitor.setLong("dbnum", key, dbsize);
+				monitor.setLong("dbexp", key, expires);
 			}
 		} catch (NumberFormatException e) {
 			logger.error("failed to monitor db info");

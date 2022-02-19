@@ -20,8 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tair.cli.conf.Configure;
-import com.tair.cli.monitor.MonitorPoint;
 import com.tair.cli.monitor.gateway.MetricGateway;
+import com.tair.cli.monitor.points.DoubleMeterPoint;
+import com.tair.cli.monitor.points.LongMeterPoint;
+import com.tair.cli.monitor.points.MonitorPoint;
+import com.tair.cli.monitor.points.StringMeterPoint;
 import com.tair.cli.util.XThreadFactory;
 
 import okhttp3.ConnectionPool;
@@ -39,6 +42,7 @@ public class InfluxdbGateway implements MetricGateway {
     public static final String VALUE = "value";
     public static final String MODULE = "module";
     public static final String FACADE = "facade";
+    public static final String PROPERTY = "property";
     public static final String INSTANCE = "instance";
 
     protected int port;
@@ -78,15 +82,18 @@ public class InfluxdbGateway implements MetricGateway {
     }
 
     @Override
-    public boolean save(List<MonitorPoint> points) {
+    public boolean save(List<MonitorPoint> points, List<StringMeterPoint> spoints, List<DoubleMeterPoint> dpoints, List<LongMeterPoint> lpoints) {
         //
-        if (points.isEmpty()) {
+        if (points.isEmpty() && spoints.isEmpty() && dpoints.isEmpty() && lpoints.isEmpty()) {
             return false;
         }
 
         //
         try {
             for (Point p : toPoints(points)) influxdb.write(p);
+            for (Point p : toLPoints(lpoints)) influxdb.write(p);
+            for (Point p : toSPoints(spoints)) influxdb.write(p);
+            for (Point p : toDPoints(dpoints)) influxdb.write(p);
             return true;
         } catch (Throwable t) {
             logger.error("failed to save points.", t);
@@ -112,6 +119,48 @@ public class InfluxdbGateway implements MetricGateway {
         //
         return Point.measurement(name).time(point.getTimestamp(), MILLISECONDS).addField(VALUE, point.getValue()).addField(AVG, avg)
                 .tag(MODULE, module).tag(TYPE, point.getMonitorType().name()).tag(FACADE, facade).tag(INSTANCE, instance).build();
+    }
+    
+    protected List<Point> toLPoints(List<LongMeterPoint> points) {
+        final List<Point> r = new ArrayList<>((points.size()));
+        for (LongMeterPoint point : points) r.add(toLPoint(point));
+        return r;
+    }
+    
+    protected Point toLPoint(final LongMeterPoint point) {
+        final String name = point.getMonitorName();
+        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
+        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
+        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
+        return builder.build();
+    }
+    
+    protected List<Point> toSPoints(List<StringMeterPoint> points) {
+        final List<Point> r = new ArrayList<>((points.size()));
+        for (StringMeterPoint point : points) r.add(toSPoint(point));
+        return r;
+    }
+    
+    protected Point toSPoint(final StringMeterPoint point) {
+        final String name = point.getMonitorName();
+        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
+        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
+        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
+        return builder.build();
+    }
+    
+    protected List<Point> toDPoints(List<DoubleMeterPoint> points) {
+        final List<Point> r = new ArrayList<>((points.size()));
+        for (DoubleMeterPoint point : points) r.add(toDPoint(point));
+        return r;
+    }
+    
+    protected Point toDPoint(final DoubleMeterPoint point) {
+        final String name = point.getMonitorName();
+        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
+        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
+        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
+        return builder.build();
     }
 
     public class ExceptionHandler implements BiConsumer<Iterable<Point>, Throwable> {

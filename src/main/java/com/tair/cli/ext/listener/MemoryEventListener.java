@@ -24,7 +24,6 @@ import com.moilioncircle.redis.replicator.event.Event;
 import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
 import com.moilioncircle.redis.replicator.event.PreRdbSyncEvent;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
-import com.moilioncircle.redis.replicator.rdb.datatype.DB;
 import com.moilioncircle.redis.replicator.rdb.datatype.ExpiredType;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.JsonEscaper;
@@ -48,12 +47,8 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	private Long bytes;
 	private Configure configure;
 	private MonitorManager manager;
-	private long totalMemory;
 	private final CmpHeap<Tuple2Ex> heap;
 	private JsonEscaper escaper = new JsonEscaper();
-	
-	//
-	private DB db;
 	
 	public MemoryEventListener(Integer limit, Long bytes, Configure configure) {
 		this.bytes = bytes;
@@ -102,12 +97,6 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 			XDumpKeyValuePair dkv = (XDumpKeyValuePair) event;
 			setContext(dkv);
 			apply(dkv);
-			if (db == null || db.getDbNumber() != dkv.getDb().getDbNumber()) {
-				db = dkv.getDb();
-				monitor.set("dbnum_" + db.getDbNumber(), db.getDbsize());
-				monitor.set("dbexp_" + db.getDbNumber(), db.getExpires());
-			}
-			totalMemory += dkv.getMemoryUsage();
 			
 			if (bytes == null || dkv.getMemoryUsage() >= bytes) {
 				Tuple2Ex tuple = new Tuple2Ex(dkv.getMemoryUsage(), dkv);
@@ -119,8 +108,6 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 			}
 			OutputStreams.flushQuietly(out);
 			OutputStreams.closeQuietly(out);
-			monitor.set("total_memory", totalMemory);
-			monitor.set("last_update", System.currentTimeMillis());
 			MonitorManager.closeQuietly(manager);
 		}
 	}

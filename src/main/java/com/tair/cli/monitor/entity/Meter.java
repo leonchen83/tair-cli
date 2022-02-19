@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package com.tair.cli.monitor.gateway;
+package com.tair.cli.monitor.entity;
 
-import java.io.Closeable;
-import java.util.List;
-
-import com.tair.cli.monitor.points.DoubleMeterPoint;
-import com.tair.cli.monitor.points.LongMeterPoint;
-import com.tair.cli.monitor.points.MonitorPoint;
-import com.tair.cli.monitor.points.StringMeterPoint;
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
 
 /**
  * @author Baoyi Chen
  */
-public interface MetricGateway extends Closeable {
-    void reset(String measurement);
-    boolean save(List<MonitorPoint> points, List<StringMeterPoint> spoints, List<DoubleMeterPoint> dpoints, List<LongMeterPoint> lpoints);
+public interface Meter<T> {
+	
+	Meter<T> reset();
+	
+	Tuple2<T, String> getMeter();
 }

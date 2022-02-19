@@ -31,12 +31,18 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.monitor.entity.Counter;
 import com.tair.cli.monitor.entity.Gauge;
+import com.tair.cli.monitor.entity.Meter;
 import com.tair.cli.monitor.entity.Monitor;
 import com.tair.cli.monitor.gateway.MetricGateway;
 import com.tair.cli.monitor.gateway.MetricGatewayFactory;
+import com.tair.cli.monitor.points.DoubleMeterPoint;
+import com.tair.cli.monitor.points.LongMeterPoint;
+import com.tair.cli.monitor.points.MonitorPoint;
+import com.tair.cli.monitor.points.StringMeterPoint;
 import com.tair.cli.util.XThreadFactory;
 
 /**
@@ -61,6 +67,9 @@ public class MonitorManager implements Closeable {
 
     public void report() {
         List<MonitorPoint> points = new ArrayList<>();
+        List<LongMeterPoint> longMeters = new ArrayList<>();
+        List<StringMeterPoint> stringMeters = new ArrayList<>();
+        List<DoubleMeterPoint> doubleMeters = new ArrayList<>();
         try {
             for (Monitor monitor : MonitorFactory.getAllMonitors().values()) {
                 for (final Map.Entry<String, ? extends Gauge> e : monitor.getGauges().entrySet()) {
@@ -74,8 +83,26 @@ public class MonitorManager implements Closeable {
                     if (counter == null) continue;
                     points.add(MonitorPoint.valueOf(monitor, e.getKey(), counter));
                 }
+    
+                for (final Map.Entry<Tuple2<String, String>, ? extends Meter<Long>> e : monitor.getLongMeters().entrySet()) {
+                    final Meter<Long> meter = e.getValue().reset();
+                    if (meter == null) continue;
+                    longMeters.add(LongMeterPoint.valueOf(monitor, e.getKey().getV1(), meter));
+                }
+    
+                for (final Map.Entry<Tuple2<String, String>, ? extends Meter<String>> e : monitor.getStringMeters().entrySet()) {
+                    final Meter<String> meter = e.getValue().reset();
+                    if (meter == null) continue;
+                    stringMeters.add(StringMeterPoint.valueOf(monitor, e.getKey().getV1(), meter));
+                }
+    
+                for (final Map.Entry<Tuple2<String, String>, ? extends Meter<Double>> e : monitor.getDoubleMeters().entrySet()) {
+                    final Meter<Double> meter = e.getValue().reset();
+                    if (meter == null) continue;
+                    doubleMeters.add(DoubleMeterPoint.valueOf(monitor, e.getKey().getV1(), meter));
+                }
             }
-            metricGateway.save(points);
+            metricGateway.save(points, stringMeters, doubleMeters, longMeters);
         } catch (Throwable e) {
             logger.error("failed to report points {}.", points, e);
         }

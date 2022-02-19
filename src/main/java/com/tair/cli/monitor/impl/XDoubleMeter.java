@@ -1,0 +1,70 @@
+/*
+ * Copyright 2016-2017 Leon Chen
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.tair.cli.monitor.impl;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.moilioncircle.redis.replicator.util.Tuples;
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
+import com.tair.cli.monitor.entity.Meter;
+
+/**
+ * @author Baoyi Chen
+ */
+public class XDoubleMeter implements Meter<Double> {
+	private final AtomicReference<Double> gauge = new AtomicReference<>(0d);
+	private final AtomicReference<String> property = new AtomicReference<>();
+	
+	@Override
+	public Tuple2<Double, String> getMeter() {
+		return Tuples.of(this.gauge.get(), this.property.get());
+	}
+	
+	@Override
+	public XDoubleMeter reset() {
+		Double v = gauge.getAndSet(0d); String p = property.getAndSet(null);
+		if (v == 0) return null; else return new ImmutableXDoubleMeter(v, p);
+	}
+	
+	void set(double value) {
+		gauge.set(value);
+	}
+	
+	void setProperty(String value) {
+		property.set(value);
+	}
+	
+	private static class ImmutableXDoubleMeter extends XDoubleMeter {
+		private final Double value;
+		private final String property;
+		
+		public ImmutableXDoubleMeter(Double v, String p) {
+			this.value = v;
+			this.property = p;
+		}
+		
+		@Override
+		public XDoubleMeter reset() {
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public Tuple2<Double, String> getMeter() {
+			return Tuples.of(this.value, this.property);
+		}
+	}
+}

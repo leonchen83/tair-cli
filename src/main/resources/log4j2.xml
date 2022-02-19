@@ -32,8 +32,8 @@
             </Policies>
         </RollingFile>
     
-        <RollingFile name="METRIC" fileName="${sys:cli.log.path:-/var/log/tair-cli}/tair-rdb-metric.log"
-                     filePattern="${sys:cli.log.path:-/var/log/tair-cli}/$${date:yyyy-MM}/tair-rdb-metric-%d{yyyy-MM-dd}-%i.log.gz">
+        <RollingFile name="METRIC" fileName="${sys:cli.log.path:-/var/log/tair-cli}/tair-metric.log"
+                     filePattern="${sys:cli.log.path:-/var/log/tair-cli}/$${date:yyyy-MM}/tair-metric-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout>
                 <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
             </PatternLayout>

@@ -49,7 +49,10 @@ public class XTairMonitor implements Callable<Integer> {
 	@Override
 	public Integer call() throws Exception {
 		Configure configure = Configure.bind();
-		XMonitorCommand command = new XMonitorCommand(new RedisURI(source), configure);
+		RedisURI uri = new RedisURI(source);
+		String hp = uri.getHost().replaceAll("\\.", "_") + "_" + uri.getPort();
+		configure.properties().setProperty("instance", hp);
+		XMonitorCommand command = new XMonitorCommand(uri, configure);
 		CloseableThread thread = CloseableThread.open("tair_monitor", command, true);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			CloseableThread.close(thread);

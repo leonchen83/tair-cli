@@ -19,8 +19,11 @@ package com.tair.cli.monitor.gateway.impl;
 import java.io.IOException;
 import java.util.List;
 
-import com.tair.cli.monitor.MonitorPoint;
 import com.tair.cli.monitor.gateway.MetricGateway;
+import com.tair.cli.monitor.points.DoubleMeterPoint;
+import com.tair.cli.monitor.points.LongMeterPoint;
+import com.tair.cli.monitor.points.MonitorPoint;
+import com.tair.cli.monitor.points.StringMeterPoint;
 
 /**
  * @author Baoyi Chen
@@ -33,7 +36,7 @@ public class NoneGateway implements MetricGateway {
     }
 
     @Override
-    public boolean save(List<MonitorPoint> points) {
+    public boolean save(List<MonitorPoint> points, List<StringMeterPoint> spoints, List<DoubleMeterPoint> dpoints, List<LongMeterPoint> lpoints) {
         return true;
     }
 
