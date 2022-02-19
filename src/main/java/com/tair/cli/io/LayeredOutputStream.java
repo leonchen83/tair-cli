@@ -67,7 +67,7 @@ public class LayeredOutputStream extends OutputStream {
         this.init = init;
         this.max = max;
         this.path = null;
-        this.prefix = "rct";
+        this.prefix = "tair";
         this.buffer = new ByteBufferOutputStream(init);
     }
     
