@@ -5,6 +5,7 @@ import static org.influxdb.BatchOptions.DEFAULTS;
 import static org.influxdb.InfluxDB.ConsistencyLevel.ONE;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -75,7 +76,12 @@ public class InfluxdbGateway implements MetricGateway {
             try {
                 this.influxdb.query(new Query("drop series from \"" + measurement + "\" where instance = '" + instance + "'", database));
             } catch (Throwable e) {
-                logger.error("failed to reset measurement [{}].", measurement, e);
+                logger.error("failed to reset measurement [{}]. cause {}", measurement, e.getMessage());
+                if (e instanceof ConnectException) {
+                    System.err.println("failed to reset measurement [" + measurement + "]. cause " + e.getMessage());
+                    System.err.println("run `cd /path/to/tair-cli/dashboard & docker-compose up -d` to start dashboard");
+                    System.exit(-1);
+                }
             }
         }
     }
@@ -100,7 +106,7 @@ public class InfluxdbGateway implements MetricGateway {
             for (Point p : toDPoints(dpoints)) influxdb.write(p);
             return true;
         } catch (Throwable t) {
-            logger.error("failed to save points.", t);
+            logger.error("failed to save points. cause {}", t.getMessage());
             return false;
         }
     }
@@ -170,7 +176,7 @@ public class InfluxdbGateway implements MetricGateway {
     public class ExceptionHandler implements BiConsumer<Iterable<Point>, Throwable> {
         @Override
         public void accept(final Iterable<Point> points, final Throwable t) {
-            logger.warn("failed to save points.", t);
+            logger.warn("failed to save points. cause {}", t.getMessage());
         }
     }
 

@@ -84,7 +84,7 @@ public class Configure {
     /**
      * timeout
      */
-    private int timeout = 60000;
+    private int timeout = 6000;
     
     /**
      * redis output stream buffer size
@@ -383,7 +383,7 @@ public class Configure {
     public static Configure bind(Properties properties) {
         Configure conf = new Configure(properties);
         conf.batchSize = getInt(conf, "batch_size", 128, true);
-        conf.timeout = getInt(conf, "timeout", 60000, true);
+        conf.timeout = getInt(conf, "timeout", 6000, true);
         conf.outputBufferSize = getInt(conf, "output_buffer_size", 8 * 1024, true);
         conf.maxOutputBufferSize = getInt(conf, "max_output_buffer_size", 512 * 1024 * 1024, true);
         conf.tempFilePath = getString(conf, "temp_file_path", null, true);

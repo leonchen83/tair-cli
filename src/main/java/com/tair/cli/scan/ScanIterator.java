@@ -83,7 +83,10 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair>, Closeable {
 			} catch (Throwable ignore) {
 			}
 		}
-		this.jedis = new Jedis(host, port, config);
+		try {
+			this.jedis = new Jedis(host, port, config);
+		} catch (JedisConnectionException e) {
+		}
 	}
 	
 	<T> T retry(Function<Jedis, T> func) {
@@ -104,7 +107,12 @@ public class ScanIterator implements Iterator<XDumpKeyValuePair>, Closeable {
 		this.port = port;
 		this.count = count;
 		this.config = config;
-		renew();
+		try {
+			this.jedis = new Jedis(host, port, config);
+		} catch (JedisConnectionException e) {
+			System.err.println("failed to connect to [" + host + ":" + port + "]");
+			System.exit(-1);
+		}
 		String keyspace = retry(e -> e.info("keyspace"));
 		String[] line = keyspace.split("\n");
 		this.dbs = new ArrayList<>();

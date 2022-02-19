@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import com.tair.cli.monitor.entity.Monitor;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 /**
  * @author Baoyi Chen
@@ -44,7 +46,9 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private final String host;
 	private final int port;
 	private Configure configure;
+	private final int retries = 5;
 	private MonitorManager manager;
+	protected volatile Jedis jedis;
 	protected final DefaultJedisClientConfig config;
 	private static final Monitor monitor = MonitorFactory.getMonitor("tair_monitor");
 	
@@ -60,12 +64,44 @@ public class XMonitorCommand implements Runnable, Closeable {
 		builder.ssl(configuration.isSsl()).sslSocketFactory(configuration.getSslSocketFactory());
 		builder.connectionTimeoutMillis(configure.getTimeout());
 		this.config = builder.build();
+		try {
+			this.jedis = new Jedis(host, port, config);
+		} catch (JedisConnectionException e) {
+			System.err.println("failed to connect to [" + host + ":" + port + "]");
+			System.exit(-1);
+		}
+	}
+	
+	private void renew() {
+		if (this.jedis != null) {
+			try {
+				this.jedis.close();
+			} catch (Throwable ignore) {
+			}
+		}
+		try {
+			this.jedis = new Jedis(host, port, config);
+		} catch (JedisConnectionException e) {
+		}
+	}
+	
+	<T> T retry(Function<Jedis, T> func) {
+		JedisConnectionException exception = null;
+		for (int i = 0; i < retries; i++) {
+			try {
+				return func.apply(jedis);
+			} catch (JedisConnectionException e) {
+				exception = e;
+				renew();
+			}
+		}
+		throw exception;
 	}
 	
 	@Override
 	public void run() {
-		try(Jedis jedis = new Jedis(host, port, config)) {
-			String info = jedis.info();
+		try {
+			String info = retry(e -> e.info());
 			Map<String, Map<String, String>> map = convert(info);
 			
 			// Server
@@ -110,8 +146,11 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setDouble("CPU", "used_cpu_sys_children", map);
 			setDouble("CPU", "used_cpu_user_children", map);
 			monitorDB(map);
+			delay(30, TimeUnit.SECONDS);
+		} catch (JedisConnectionException e) {
+			System.err.println("failed to connect to [" + host + ":" + port + "]");
+			System.exit(-1);
 		}
-		delay(30, TimeUnit.SECONDS);
 	}
 	
 	private void setLong(String key, String field, Map<String, Map<String, String>> map) {
@@ -199,6 +238,12 @@ public class XMonitorCommand implements Runnable, Closeable {
 	
 	@Override
 	public void close() {
+		try {
+			if (jedis != null) {
+				jedis.close();
+			}
+		} catch (Throwable e) {
+		}
 		MonitorManager.closeQuietly(manager);
 	}
 }
