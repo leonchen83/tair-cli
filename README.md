@@ -13,6 +13,7 @@ tair-cli是一个命令行工具，能在线分析tair中保存的数据。并�
 3. 将tair中的数据转换为标准redis的dump格式
 4. 将tair中的数据转换为标准redis的resp格式
 5. 分析tair中的数据，导出大key的jsonl格式
+6. 分析tair中各种类型的key个数
 
 ## tair-cli 解决哪些痛点
 
@@ -58,6 +59,9 @@ $ /path/to/redis-2.8.24/src/redis-check-dump dump.rdb
 # 生成rdb
 tair-cli rdb --source redis://host:port --key user.* --db 1 2 --type string --rdb-version 7 --convert > dump.rdb
 
+# 查看db1与db2中string类型的个数
+tair-cli count --source redis://host:port --key user.* --db 1 2 --type string
+
 # 生成jsonl
 tair-cli jsonl --source redis://host:port --key user.* --db 1 --type hash > dump.jsonl
 
@@ -98,6 +102,7 @@ Commands:
   dump    Convert source to dump format.
   memory  Analyze source memory and output to jsonl format.
   jsonl   Convert source to jsonl format.
+  count   Count numbers of key in redis.
 
 ```
 

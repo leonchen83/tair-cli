@@ -33,7 +33,7 @@ import picocli.CommandLine;
 		optionListHeading = "Options:%n",
 		mixinStandardHelpOptions = true,
 		versionProvider = XVersionProvider.class,
-		subcommands = {CommandLine.HelpCommand.class, XRdbCommand.class, XRespCommand.class, XDumpCommand.class, XMemoryCommand.class, XJsonlCommand.class})
+		subcommands = {CommandLine.HelpCommand.class, XRdbCommand.class, XRespCommand.class, XDumpCommand.class, XMemoryCommand.class, XJsonlCommand.class, XCountCommand.class})
 public class XTairCli implements Callable<Integer> {
 	
 	@CommandLine.Spec
