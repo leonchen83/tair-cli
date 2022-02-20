@@ -16,13 +16,14 @@
 
 package com.tair.cli.monitor.entity;
 
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
+
 /**
- * 
- * @author Jingqi Xu
+ * @author Baoyi Chen
  */
-public interface Gauge {
-    
-    Gauge reset();
-    
-    long getGauge();
+public interface Gauge<T> {
+	
+	Gauge<T> reset();
+	
+	Tuple2<T, String> getGauge();
 }

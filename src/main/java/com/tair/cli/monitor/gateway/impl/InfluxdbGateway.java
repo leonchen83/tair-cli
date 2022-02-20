@@ -22,10 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import com.tair.cli.conf.Configure;
 import com.tair.cli.monitor.gateway.MetricGateway;
-import com.tair.cli.monitor.points.DoubleMeterPoint;
-import com.tair.cli.monitor.points.LongMeterPoint;
-import com.tair.cli.monitor.points.MonitorPoint;
-import com.tair.cli.monitor.points.StringMeterPoint;
+import com.tair.cli.monitor.points.DoubleCounterPoint;
+import com.tair.cli.monitor.points.DoubleGaugePoint;
+import com.tair.cli.monitor.points.LongCounterPoint;
+import com.tair.cli.monitor.points.LongGaugePoint;
+import com.tair.cli.monitor.points.StringGaugePoint;
 import com.tair.cli.util.XThreadFactory;
 
 import okhttp3.ConnectionPool;
@@ -42,7 +43,7 @@ public class InfluxdbGateway implements MetricGateway {
     public static final String TYPE = "type";
     public static final String VALUE = "value";
     public static final String MODULE = "module";
-    public static final String FACADE = "facade";
+    public static final String MTIME = "mtime";
     public static final String PROPERTY = "property";
     public static final String INSTANCE = "instance";
 
@@ -92,18 +93,19 @@ public class InfluxdbGateway implements MetricGateway {
     }
 
     @Override
-    public boolean save(List<MonitorPoint> points, List<StringMeterPoint> spoints, List<DoubleMeterPoint> dpoints, List<LongMeterPoint> lpoints) {
+    public boolean save(List<DoubleCounterPoint> dcpoints, List<LongCounterPoint> lcpoints, List<StringGaugePoint> spoints, List<DoubleGaugePoint> dpoints, List<LongGaugePoint> lpoints) {
         //
-        if (points.isEmpty() && spoints.isEmpty() && dpoints.isEmpty() && lpoints.isEmpty()) {
+        if (dcpoints.isEmpty() && lcpoints.isEmpty() && spoints.isEmpty() && dpoints.isEmpty() && lpoints.isEmpty()) {
             return false;
         }
 
         //
         try {
-            for (Point p : toPoints(points)) influxdb.write(p);
             for (Point p : toLPoints(lpoints)) influxdb.write(p);
             for (Point p : toSPoints(spoints)) influxdb.write(p);
             for (Point p : toDPoints(dpoints)) influxdb.write(p);
+            for (Point p : toDCPoints(dcpoints)) influxdb.write(p);
+            for (Point p : toLCPoints(lcpoints)) influxdb.write(p);
             return true;
         } catch (Throwable t) {
             logger.error("failed to save points. cause {}", t.getMessage());
@@ -111,33 +113,43 @@ public class InfluxdbGateway implements MetricGateway {
         }
     }
 
-    protected List<Point> toPoints(List<MonitorPoint> points) {
+    protected List<Point> toDCPoints(List<DoubleCounterPoint> points) {
         final List<Point> r = new ArrayList<>((points.size()));
-        for (MonitorPoint point : points) r.add(toPoint(point));
+        for (DoubleCounterPoint point : points) r.add(toDCPoint(point));
         return r;
     }
 
-    protected Point toPoint(final MonitorPoint point) {
-        //
+    protected Point toDCPoint(final DoubleCounterPoint point) {
         final String name = point.getMonitorName();
-        final String facade = point.getMonitorKey();
-        final int index = name.indexOf('_');
-        String module = index > 0 ? name.substring(0, index) : name;
-        double avg = 0d;
-        if (point.getTime() != 0L && point.getValue() != 0L) avg = point.getTime() / 1000000d / point.getValue();
-
-        //
-        return Point.measurement(name).time(point.getTimestamp(), MILLISECONDS).addField(VALUE, point.getValue()).addField(AVG, avg)
-                .tag(MODULE, module).tag(TYPE, point.getMonitorType().name()).tag(FACADE, facade).tag(INSTANCE, instance).build();
+        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
+        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
+        if (point.getTime() > 0) builder.addField(MTIME, point.getTime());
+        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
+        return builder.build();
     }
     
-    protected List<Point> toLPoints(List<LongMeterPoint> points) {
+    protected List<Point> toLCPoints(List<LongCounterPoint> points) {
         final List<Point> r = new ArrayList<>((points.size()));
-        for (LongMeterPoint point : points) r.add(toLPoint(point));
+        for (LongCounterPoint point : points) r.add(toLCPoint(point));
         return r;
     }
     
-    protected Point toLPoint(final LongMeterPoint point) {
+    protected Point toLCPoint(final LongCounterPoint point) {
+        final String name = point.getMonitorName();
+        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
+        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
+        if (point.getTime() > 0) builder.addField(MTIME, point.getTime());
+        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
+        return builder.build();
+    }
+    
+    protected List<Point> toLPoints(List<LongGaugePoint> points) {
+        final List<Point> r = new ArrayList<>((points.size()));
+        for (LongGaugePoint point : points) r.add(toLPoint(point));
+        return r;
+    }
+    
+    protected Point toLPoint(final LongGaugePoint point) {
         final String name = point.getMonitorName();
         Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
         builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
@@ -145,13 +157,13 @@ public class InfluxdbGateway implements MetricGateway {
         return builder.build();
     }
     
-    protected List<Point> toSPoints(List<StringMeterPoint> points) {
+    protected List<Point> toSPoints(List<StringGaugePoint> points) {
         final List<Point> r = new ArrayList<>((points.size()));
-        for (StringMeterPoint point : points) r.add(toSPoint(point));
+        for (StringGaugePoint point : points) r.add(toSPoint(point));
         return r;
     }
     
-    protected Point toSPoint(final StringMeterPoint point) {
+    protected Point toSPoint(final StringGaugePoint point) {
         final String name = point.getMonitorName();
         Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
         builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
@@ -159,13 +171,13 @@ public class InfluxdbGateway implements MetricGateway {
         return builder.build();
     }
     
-    protected List<Point> toDPoints(List<DoubleMeterPoint> points) {
+    protected List<Point> toDPoints(List<DoubleGaugePoint> points) {
         final List<Point> r = new ArrayList<>((points.size()));
-        for (DoubleMeterPoint point : points) r.add(toDPoint(point));
+        for (DoubleGaugePoint point : points) r.add(toDPoint(point));
         return r;
     }
     
-    protected Point toDPoint(final DoubleMeterPoint point) {
+    protected Point toDPoint(final DoubleGaugePoint point) {
         final String name = point.getMonitorName();
         Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
         builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);

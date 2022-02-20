@@ -20,27 +20,27 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.moilioncircle.redis.replicator.util.Tuples;
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
-import com.tair.cli.monitor.entity.Meter;
+import com.tair.cli.monitor.entity.Gauge;
 
 /**
  * @author Baoyi Chen
  */
-public class XDoubleMeter implements Meter<Double> {
-	private final AtomicReference<Double> gauge = new AtomicReference<>(0d);
+public class XStringGauge implements Gauge<String> {
+	private final AtomicReference<String> gauge = new AtomicReference<>();
 	private final AtomicReference<String> property = new AtomicReference<>();
 	
 	@Override
-	public Tuple2<Double, String> getMeter() {
+	public Tuple2<String, String> getGauge() {
 		return Tuples.of(this.gauge.get(), this.property.get());
 	}
 	
 	@Override
-	public XDoubleMeter reset() {
-		Double v = gauge.getAndSet(0d); String p = property.getAndSet(null);
-		if (v == 0) return null; else return new ImmutableXDoubleMeter(v, p);
+	public XStringGauge reset() {
+		String v = gauge.getAndSet(null); String p = property.getAndSet(null);
+		if (v == null) return null; else return new ImmutableXStringGauge(v, p);
 	}
 	
-	void set(double value) {
+	void set(String value) {
 		gauge.set(value);
 	}
 	
@@ -48,23 +48,23 @@ public class XDoubleMeter implements Meter<Double> {
 		property.set(value);
 	}
 	
-	private static class ImmutableXDoubleMeter extends XDoubleMeter {
-		private final Double value;
+	private static class ImmutableXStringGauge extends XStringGauge {
+		private final String value;
 		private final String property;
 		
-		public ImmutableXDoubleMeter(Double v, String p) {
+		public ImmutableXStringGauge(String v, String p) {
 			this.value = v;
 			this.property = p;
 		}
 		
 		@Override
-		public XDoubleMeter reset() {
+		public XStringGauge reset() {
 			throw new UnsupportedOperationException();
 		}
 		
 		@Override
-		public Tuple2<Double, String> getMeter() {
-			return Tuples.of(this.value, this.property);
+		public Tuple2<String, String> getGauge() {
+			return Tuples.of(value, property);
 		}
 	}
 }

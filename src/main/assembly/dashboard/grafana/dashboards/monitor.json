@@ -15,7 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "iteration": 1645277514663,
+  "iteration": 1645354579641,
   "links": [],
   "panels": [
     {
@@ -2171,7 +2171,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "$tag_facade",
+          "alias": "$tag_property",
           "groupBy": [
             {
               "params": [
@@ -2188,7 +2188,7 @@
           ],
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT sum(\"value\") FROM \"30days\".\"memory_statistics\" WHERE (\"instance\" =~ /^$instance$/ AND \"module\" = 'memory' AND \"type\" = 'COUNTER' AND \"facade\" =~ /^count_*/) AND $timeFilter GROUP BY \"facade\" fill(null)",
+          "query": "SELECT sum(\"value\") FROM \"30days\".\"type_count\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY \"property\" fill(null)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -2289,7 +2289,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "$tag_facade",
+          "alias": "$tag_property",
           "groupBy": [
             {
               "params": [
@@ -2306,7 +2306,7 @@
           ],
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT sum(\"value\") FROM \"30days\".\"memory_statistics\" WHERE (\"instance\" =~ /^$instance$/ AND \"module\" = 'memory' AND \"type\" = 'COUNTER' AND \"facade\" =~ /^memory_*/) AND $timeFilter GROUP BY \"facade\" fill(null)",
+          "query": "SELECT sum(\"value\") FROM \"30days\".\"type_memory\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY \"property\" fill(null)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -2432,5 +2432,5 @@
   "timezone": "",
   "title": "monitor",
   "uid": "monitor",
-  "version": 1
+  "version": 2
 }

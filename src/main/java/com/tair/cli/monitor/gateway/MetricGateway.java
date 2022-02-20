@@ -19,15 +19,17 @@ package com.tair.cli.monitor.gateway;
 import java.io.Closeable;
 import java.util.List;
 
-import com.tair.cli.monitor.points.DoubleMeterPoint;
-import com.tair.cli.monitor.points.LongMeterPoint;
-import com.tair.cli.monitor.points.MonitorPoint;
-import com.tair.cli.monitor.points.StringMeterPoint;
+import com.tair.cli.monitor.points.DoubleCounterPoint;
+import com.tair.cli.monitor.points.DoubleGaugePoint;
+import com.tair.cli.monitor.points.LongCounterPoint;
+import com.tair.cli.monitor.points.LongGaugePoint;
+import com.tair.cli.monitor.points.StringGaugePoint;
 
 /**
  * @author Baoyi Chen
  */
 public interface MetricGateway extends Closeable {
+    
     void reset(String measurement);
-    boolean save(List<MonitorPoint> points, List<StringMeterPoint> spoints, List<DoubleMeterPoint> dpoints, List<LongMeterPoint> lpoints);
+    boolean save(List<DoubleCounterPoint> dcpoints, List<LongCounterPoint> lcpoints, List<StringGaugePoint> spoints, List<DoubleGaugePoint> dpoints, List<LongGaugePoint> lpoints);
 }

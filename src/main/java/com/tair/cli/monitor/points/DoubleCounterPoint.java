@@ -16,23 +16,33 @@
 
 package com.tair.cli.monitor.points;
 
-import com.tair.cli.monitor.entity.Meter;
+import com.moilioncircle.redis.replicator.util.type.Tuple3;
+import com.tair.cli.monitor.entity.Counter;
 import com.tair.cli.monitor.entity.Monitor;
 
 /**
  * @author Baoyi Chen
  */
-public class LongMeterPoint {
-	private long value;
+public class DoubleCounterPoint {
+	private long time;
+	private double value;
 	private long timestamp;
 	private String property;
 	private String monitorName;
 	
-	public long getValue() {
+	public long getTime() {
+		return time;
+	}
+	
+	public void setTime(long time) {
+		this.time = time;
+	}
+	
+	public double getValue() {
 		return value;
 	}
 	
-	public void setValue(long value) {
+	public void setValue(double value) {
 		this.value = value;
 	}
 	
@@ -60,19 +70,22 @@ public class LongMeterPoint {
 		this.monitorName = monitorName;
 	}
 	
-	public static LongMeterPoint valueOf(Monitor monitor, String key, Meter<Long> meter) {
-		LongMeterPoint point = new LongMeterPoint();
+	public static DoubleCounterPoint valueOf(Monitor monitor, String key, Counter<Double> counter) {
+		DoubleCounterPoint point = new DoubleCounterPoint();
 		point.monitorName = key;
-		point.value = meter.getMeter().getV1();
-		point.property = meter.getMeter().getV2();
+		Tuple3<Double, String, Long> tps = counter.getCounter();
+		point.value = tps.getV1();
+		point.property = tps.getV2();
+		point.time = tps.getV3();
 		point.timestamp = System.currentTimeMillis();
 		return point;
 	}
 	
 	@Override
 	public String toString() {
-		return "LongMeterPoint{" +
-				"value=" + value +
+		return "DoubleCounterPoint{" +
+				"time=" + time +
+				", value=" + value +
 				", timestamp=" + timestamp +
 				", property='" + property + '\'' +
 				", monitorName='" + monitorName + '\'' +

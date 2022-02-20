@@ -30,44 +30,48 @@ public interface Monitor {
 
     String getName();
     
-    Map<String, ? extends Gauge> getGauges();
+    Map<Tuple2<String, String>, ? extends Counter<Long>> getLongCounters();
+    
+    Map<Tuple2<String, String>, ? extends Counter<Double>> getDoubleCounters();
+    
+    Map<Tuple2<String, String>, ? extends Gauge<Long>> getLongGauges();
+    
+    Map<Tuple2<String, String>, ? extends Gauge<Double>> getDoubleGauges();
+    
+    Map<Tuple2<String, String>, ? extends Gauge<String>> getStringGauges();
 
-    Map<String, ? extends Counter> getCounters();
-    
-    Map<Tuple2<String, String>, ? extends Meter<Long>> getLongMeters();
-    
-    Map<Tuple2<String, String>, ? extends Meter<Double>> getDoubleMeters();
-    
-    Map<Tuple2<String, String>, ? extends Meter<String>> getStringMeters();
-
-    /**
-     * Gauge
-     */
-    void set(String key, long value);
-    
     /**
      * Counter
      */
-    void add(String key, long count);
+    void add(String measurement, long value);
 
-    void add(String key, long count, long time);
+    void add(String measurement, long value, long time);
+    
+    void add(String measurement, String property, long value);
+    
+    void add(String measurement, String property, long value, long time);
+    
+    void add(String measurement, double value);
+    
+    void add(String measurement, double value, long time);
+    
+    void add(String measurement, String property, double value);
+    
+    void add(String measurement, String property, double value, long time);
     
     /**
-     * Meter
+     * Gauge
      */
-    void setLong(String measurement, long value);
+    void set(String measurement, long value);
     
-    void setDouble(String measurement, double value);
+    void set(String measurement, double value);
     
-    void setString(String measurement, String value);
+    void set(String measurement, String value);
     
-    /**
-     * Meter
-     */
-    void setLong(String measurement, String property, long value);
+    void set(String measurement, String property, long value);
     
-    void setDouble(String measurement, String property, double value);
+    void set(String measurement, String property, double value);
     
-    void setString(String measurement, String property, String value);
+    void set(String measurement, String property, String value);
 
 }

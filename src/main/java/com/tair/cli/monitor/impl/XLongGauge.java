@@ -21,24 +21,24 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.moilioncircle.redis.replicator.util.Tuples;
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
-import com.tair.cli.monitor.entity.Meter;
+import com.tair.cli.monitor.entity.Gauge;
 
 /**
  * @author Baoyi Chen
  */
-public class XLongMeter implements Meter<Long> {
+public class XLongGauge implements Gauge<Long> {
 	private final AtomicLong gauge = new AtomicLong(0);
 	private final AtomicReference<String> property = new AtomicReference<>();
 	
 	@Override
-	public Tuple2<Long, String> getMeter() {
+	public Tuple2<Long, String> getGauge() {
 		return Tuples.of(this.gauge.get(), this.property.get());
 	}
 	
 	@Override
-	public XLongMeter reset() {
+	public XLongGauge reset() {
 		long v = gauge.getAndSet(0); String p = property.getAndSet(null);
-		if (v == 0) return null; else return new ImmutableXLongMeter(v, p);
+		if (v == 0) return null; else return new ImmutableXLongGauge(v, p);
 	}
 	
 	void set(long value) {
@@ -49,22 +49,22 @@ public class XLongMeter implements Meter<Long> {
 		this.property.set(value);
 	}
 	
-	private static class ImmutableXLongMeter extends XLongMeter {
+	private static class ImmutableXLongGauge extends XLongGauge {
 		private final Long value;
 		private final String property;
 		
-		public ImmutableXLongMeter(Long v, String p) {
+		public ImmutableXLongGauge(Long v, String p) {
 			this.value = v;
 			this.property = p;
 		}
 		
 		@Override
-		public XLongMeter reset() {
+		public XLongGauge reset() {
 			throw new UnsupportedOperationException();
 		}
 		
 		@Override
-		public Tuple2<Long, String> getMeter() {
+		public Tuple2<Long, String> getGauge() {
 			return Tuples.of(value, property);
 		}
 	}

@@ -16,23 +16,23 @@
 
 package com.tair.cli.monitor.points;
 
-import com.tair.cli.monitor.entity.Meter;
+import com.tair.cli.monitor.entity.Gauge;
 import com.tair.cli.monitor.entity.Monitor;
 
 /**
  * @author Baoyi Chen
  */
-public class DoubleMeterPoint {
-	private double value;
+public class StringGaugePoint {
+	private String value;
 	private long timestamp;
 	private String property;
 	private String monitorName;
 	
-	public double getValue() {
+	public String getValue() {
 		return value;
 	}
 	
-	public void setValue(double value) {
+	public void setValue(String value) {
 		this.value = value;
 	}
 	
@@ -60,19 +60,19 @@ public class DoubleMeterPoint {
 		this.monitorName = monitorName;
 	}
 	
-	public static DoubleMeterPoint valueOf(Monitor monitor, String key, Meter<Double> meter) {
-		DoubleMeterPoint point = new DoubleMeterPoint();
+	public static StringGaugePoint valueOf(Monitor monitor, String key, Gauge<String> gauge) {
+		StringGaugePoint point = new StringGaugePoint();
 		point.monitorName = key;
-		point.value = meter.getMeter().getV1();
-		point.property = meter.getMeter().getV2();
+		point.value = gauge.getGauge().getV1();
+		point.property = gauge.getGauge().getV2();
 		point.timestamp = System.currentTimeMillis();
 		return point;
 	}
 	
 	@Override
 	public String toString() {
-		return "DoubleMeterPoint{" +
-				"value=" + value +
+		return "StringGaugePoint{" +
+				"value='" + value + '\'' +
 				", timestamp=" + timestamp +
 				", property='" + property + '\'' +
 				", monitorName='" + monitorName + '\'' +

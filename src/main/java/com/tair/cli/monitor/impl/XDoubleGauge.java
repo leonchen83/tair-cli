@@ -20,27 +20,27 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.moilioncircle.redis.replicator.util.Tuples;
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
-import com.tair.cli.monitor.entity.Meter;
+import com.tair.cli.monitor.entity.Gauge;
 
 /**
  * @author Baoyi Chen
  */
-public class XStringMeter implements Meter<String> {
-	private final AtomicReference<String> gauge = new AtomicReference<>();
+public class XDoubleGauge implements Gauge<Double> {
+	private final AtomicReference<Double> gauge = new AtomicReference<>(0d);
 	private final AtomicReference<String> property = new AtomicReference<>();
 	
 	@Override
-	public Tuple2<String, String> getMeter() {
+	public Tuple2<Double, String> getGauge() {
 		return Tuples.of(this.gauge.get(), this.property.get());
 	}
 	
 	@Override
-	public XStringMeter reset() {
-		String v = gauge.getAndSet(null); String p = property.getAndSet(null);
-		if (v == null) return null; else return new ImmutableXStringMeter(v, p);
+	public XDoubleGauge reset() {
+		Double v = gauge.getAndSet(0d); String p = property.getAndSet(null);
+		if (v == 0) return null; else return new ImmutableXDoubleGauge(v, p);
 	}
 	
-	void set(String value) {
+	void set(double value) {
 		gauge.set(value);
 	}
 	
@@ -48,23 +48,23 @@ public class XStringMeter implements Meter<String> {
 		property.set(value);
 	}
 	
-	private static class ImmutableXStringMeter extends XStringMeter {
-		private final String value;
+	private static class ImmutableXDoubleGauge extends XDoubleGauge {
+		private final Double value;
 		private final String property;
 		
-		public ImmutableXStringMeter(String v, String p) {
+		public ImmutableXDoubleGauge(Double v, String p) {
 			this.value = v;
 			this.property = p;
 		}
 		
 		@Override
-		public XStringMeter reset() {
+		public XDoubleGauge reset() {
 			throw new UnsupportedOperationException();
 		}
 		
 		@Override
-		public Tuple2<String, String> getMeter() {
-			return Tuples.of(value, property);
+		public Tuple2<Double, String> getGauge() {
+			return Tuples.of(this.value, this.property);
 		}
 	}
 }

@@ -92,9 +92,10 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	@Override
 	public void onEvent(Replicator replicator, Event event) {
 		if (event instanceof PreRdbSyncEvent) {
-			manager.reset("memory_statistics");
+			manager.reset("type_count");
+			manager.reset("type_memory");
 			long now = System.currentTimeMillis();
-			monitor.setLong("monitor", configure.get("instance"), now);
+			monitor.set("monitor", configure.get("instance"), now);
 		} else if (event instanceof XDumpKeyValuePair) {
 			XDumpKeyValuePair dkv = (XDumpKeyValuePair) event;
 			setContext(dkv);
@@ -147,120 +148,120 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	
 	@Override
 	public  <T> T applyString(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_string", 1);
-		monitor.add("memory_string", getContext().getMemoryUsage());
+		monitor.add("type_count", "string", 1);
+		monitor.add("type_memory", "string", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyList(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_list", 1);
-		monitor.add("memory_list", getContext().getMemoryUsage());
+		monitor.add("type_count", "list", 1);
+		monitor.add("type_memory", "list", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applySet(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_set", 1);
-		monitor.add("memory_set", getContext().getMemoryUsage());
+		monitor.add("type_count", "set", 1);
+		monitor.add("type_memory", "set", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyZSet(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_zset", 1);
-		monitor.add("memory_zset", getContext().getMemoryUsage());
+		monitor.add("type_count", "zset", 1);
+		monitor.add("type_memory", "zset", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyZSet2(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_zset", 1);
-		monitor.add("memory_zset", getContext().getMemoryUsage());
+		monitor.add("type_count", "zset", 1);
+		monitor.add("type_memory", "zset", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyHash(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_hash", 1);
-		monitor.add("memory_hash", getContext().getMemoryUsage());
+		monitor.add("type_count", "hash", 1);
+		monitor.add("type_memory", "hash", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyHashZipMap(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_hash", 1);
-		monitor.add("memory_hash", getContext().getMemoryUsage());
+		monitor.add("type_count", "hash", 1);
+		monitor.add("type_memory", "hash", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyListZipList(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_list", 1);
-		monitor.add("memory_list", getContext().getMemoryUsage());
+		monitor.add("type_count", "list", 1);
+		monitor.add("type_memory", "list", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applySetIntSet(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_set", 1);
-		monitor.add("memory_set", getContext().getMemoryUsage());
+		monitor.add("type_count", "set", 1);
+		monitor.add("type_memory", "set", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyZSetZipList(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_zset", 1);
-		monitor.add("memory_zset", getContext().getMemoryUsage());
+		monitor.add("type_count", "zset", 1);
+		monitor.add("type_memory", "zset", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyZSetListPack(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_zset", 1);
-		monitor.add("memory_zset", getContext().getMemoryUsage());
+		monitor.add("type_count", "zset", 1);
+		monitor.add("type_memory", "zset", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyHashZipList(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_hash", 1);
-		monitor.add("memory_hash", getContext().getMemoryUsage());
+		monitor.add("type_count", "hash", 1);
+		monitor.add("type_memory", "hash", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyHashListPack(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_hash", 1);
-		monitor.add("memory_hash", getContext().getMemoryUsage());
+		monitor.add("type_count", "hash", 1);
+		monitor.add("type_memory", "hash", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyListQuickList(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_list", 1);
-		monitor.add("memory_list", getContext().getMemoryUsage());
+		monitor.add("type_count", "list", 1);
+		monitor.add("type_memory", "list", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyListQuickList2(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_list", 1);
-		monitor.add("memory_list", getContext().getMemoryUsage());
+		monitor.add("type_count", "list", 1);
+		monitor.add("type_memory", "list", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyModule2(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_module", 1);
-		monitor.add("memory_module", getContext().getMemoryUsage());
+		monitor.add("type_count", "module", 1);
+		monitor.add("type_memory", "module", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 	
 	@Override
 	public <T> T applyStreamListPacks(RedisInputStream in, int version) throws IOException {
-		monitor.add("count_stream", 1);
-		monitor.add("memory_stream", getContext().getMemoryUsage());
+		monitor.add("type_count", "stream", 1);
+		monitor.add("type_memory", "stream", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
 }

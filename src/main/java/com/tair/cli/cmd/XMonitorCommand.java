@@ -106,7 +106,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 			
 			// Server
 			long now = System.currentTimeMillis();
-			monitor.setLong("monitor", configure.get("instance"), now);
+			monitor.set("monitor", configure.get("instance"), now);
 			setLong("Server", "uptime_in_seconds", map);
 			setString("Server", "redis_version", map);
 			setString("Replication", "role", map);
@@ -157,7 +157,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 		if (map.containsKey(key) && map.get(key).containsKey(field)) {
 			String value = map.get(key).get(field);
 			try {
-				monitor.setLong(field, Long.parseLong(value));
+				monitor.set(field, Long.parseLong(value));
 			} catch (NumberFormatException e) {
 				logger.error("failed to monitor long attribute [{}]", field);
 			}
@@ -168,7 +168,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 		if (map.containsKey(key) && map.get(key).containsKey(field)) {
 			String value = map.get(key).get(field);
 			try {
-				monitor.setDouble(field, Double.parseDouble(value));
+				monitor.set(field, Double.parseDouble(value));
 			} catch (NumberFormatException e) {
 				logger.error("failed to monitor double attribute [{}]", field);
 			}
@@ -179,7 +179,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 		if (map.containsKey(key) && map.get(key).containsKey(field)) {
 			String value = map.get(key).get(field);
 			try {
-				monitor.setString(field, value);
+				monitor.set(field, value);
 			} catch (NumberFormatException e) {
 				logger.error("failed to monitor string attribute [{}]", field);
 			}
@@ -196,13 +196,13 @@ public class XMonitorCommand implements Runnable, Closeable {
 				String[] ary = entry.getValue().split(",");
 				long dbsize = Long.parseLong(ary[0].split("=")[1]);
 				long expires = Long.parseLong(ary[1].split("=")[1]);
-				monitor.setLong("dbnum", key, dbsize);
-				monitor.setLong("dbexp", key, expires);
+				monitor.set("dbnum", key, dbsize);
+				monitor.set("dbexp", key, expires);
 				totalCount += dbsize;
 				totalExpire += expires;
 			}
-			monitor.setLong("total_dbnum", totalCount);
-			monitor.setLong("total_dbexp", totalExpire);
+			monitor.set("total_dbnum", totalCount);
+			monitor.set("total_dbexp", totalExpire);
 		} catch (NumberFormatException e) {
 			logger.error("failed to monitor db info");
 		}
