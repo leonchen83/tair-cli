@@ -31,7 +31,7 @@ import com.moilioncircle.redis.replicator.util.ByteBuilder;
 /**
  * @author Baoyi Chen
  */
-public class UnTairStructure extends AbstractTair {
+public class TairTS extends AbstractTair {
 	
 	@Override
 	public int type() {

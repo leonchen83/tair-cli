@@ -39,6 +39,7 @@ public class Tairs {
 	private static ModuleKey TAIR_GIS = ModuleKey.key("exgistype", 0);
 	private static ModuleKey TAIR_BLOOM = ModuleKey.key("exbloom--", 0);
 	private static ModuleKey TAIR_ROARING = ModuleKey.key("tairroar-", 1);
+	private static ModuleKey TAIR_TS = ModuleKey.key("exts-type", 0);
 	
 	private static Map<ModuleKey, Tair> MAP = new HashMap<>();
 	
@@ -52,6 +53,7 @@ public class Tairs {
 		MAP.put(TAIR_GIS, new TairGis());
 		MAP.put(TAIR_BLOOM, new TairBloom());
 		MAP.put(TAIR_ROARING, new TairRoaring());
+		MAP.put(TAIR_TS, new TairTS());
 	}
 	
 	public static Tair get(RedisInputStream in) throws IOException {
