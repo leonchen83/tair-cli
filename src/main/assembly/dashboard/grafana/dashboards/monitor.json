@@ -637,7 +637,7 @@
               "type": "time"
             }
           ],
-          "measurement": "total_net_input_bytes",
+          "measurement": "total_net_output_bytes",
           "orderByTime": "ASC",
           "policy": "30days",
           "query": "SELECT last(\"value\") FROM \"30days\".\"memory_statistics\" WHERE (\"instance\" =~ /^$instance$/ AND \"module\" = 'memory' AND \"type\" = 'GAUGE' AND \"facade\" = 'total_memory') AND $timeFilter fill(null)",
