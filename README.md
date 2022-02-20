@@ -4,36 +4,6 @@ Code for Tair Hackathon
 1. tair-cli
 2. tair-monitor
 
-## 安装 tair-cli
-
-```shell
-# macos 安装依赖
-$ brew install openjdk@11
-$ brew install --cask docker
-$ brew install docker-compose
-
-# 检查java版本
-$ java -version
-openjdk version "11.0.11" 2021-04-20
-OpenJDK Runtime Environment GraalVM CE 21.1.0 (build 11.0.11+8-jvmci-21.1-b05)
-OpenJDK 64-Bit Server VM GraalVM CE 21.1.0 (build 11.0.11+8-jvmci-21.1-b05, mixed mode, sharing)
-
-# 安装tair-cli 并启动grafana dashboard
-$ cd /path/to
-$ unzip tair-cli-release.zip
-$ cd tair-cli/dashboard
-$ docker-compose up -d
-
-# 打开浏览器 http://localhost:3000/d/monitor/monitor. 用户名tair-cli， 密码tair-cli登录grafana
-$ cd /path/to/tair-cli/bin
-
-# 生成rdb
-$ ./tair-cli --source redis://host:port?authPassword=pass --convert > dump.rdb
-
-# 监控tair服务器, 执行完下述命令后，刷新http://localhost:3000/d/monitor/monitor 看各种监控信息
-$ ./tair-monitor --source redis://host:port?authPassword=pass
-```
-
 ## tair-cli 是什么
 
 tair-cli是一个命令行工具，能在线分析tair中保存的数据。并支持对数据进行如下转换

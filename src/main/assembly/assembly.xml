@@ -74,5 +74,9 @@
             <source>README.md</source>
             <destName>README.md</destName>
         </file>
+        <file>
+            <source>INSTALL.md</source>
+            <destName>INSTALL.md</destName>
+        </file>
     </files>
 </assembly>
