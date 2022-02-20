@@ -36,7 +36,7 @@ $ /path/to/redis-2.8.24/src/redis-check-dump dump.rdb
 
 1. 针对问题1，可以设置`--rdb-version` 生成指定版本的rdb文件
 2. 针对问题2，可以设置`--convert` 将企业级数据结构转为普通结构（TairString转换为String， 会丢失version等信息）
-3. 针对问题3，可设置`--key --db --type`等过滤条件，生成指定数据的rdb
+3. 针对问题3，可设置`--key`, `--db`, `--type`等过滤条件，生成指定数据的rdb
 4. 针对问题4，可以将`RDB_TYPE_LIST_QUICKLIST`转换为低版本支持的`RDB_TYPE_LIST`
 
 #### tair-cli 的实现原理
