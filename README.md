@@ -57,22 +57,32 @@ $ /path/to/redis-2.8.24/src/redis-check-dump dump.rdb
 
 ```shell
 # 生成rdb
-tair-cli rdb --source redis://host:port --key user.* --db 1 2 --type string --rdb-version 7 --convert > dump.rdb
+$ tair-cli rdb --source redis://host:port --key user.* --db 1 2 --type string --rdb-version 7 --convert > dump.rdb
 
 # 查看db1与db2中string类型的个数
-tair-cli count --source redis://host:port --key user.* --db 1 2 --type string
+$ tair-cli count --source redis://host:port --key user.* --db 1 2 --type string
 
 # 生成jsonl
-tair-cli jsonl --source redis://host:port --key user.* --db 1 --type hash > dump.jsonl
+$ tair-cli jsonl --source redis://host:port --key user.* --db 1 --type hash > dump.jsonl
 
 # 分析memory(key 大于 1024 bytes的top 10 数据)
-tair-cli memory --source redis://host:port --bytes 1024 --limit 10 > memory.jsonl
+$ tair-cli memory --source redis://host:port --bytes 1024 --limit 10 > memory.jsonl
 
 # 转换成resp格式的aof
-tair-cli resp --source redis://host:port --convert --replace > resp.aof
+$ tair-cli resp --source redis://host:port --convert --replace > resp.aof
 
 # 转换成dump格式的aof
-tair-cli dump --source redis://host:port --rdb-version 6 --convert --replace > dump.aof
+$ tair-cli dump --source redis://host:port --rdb-version 6 --convert --replace > dump.aof
+```
+
+#### 登录目标 redis
+
+```shell
+$ tair-cli resp --source redis://host:port?authPassword=pass --convert --replace > resp.aof
+
+# 当pass含有特殊字符比如 @ 等，需要进行url encode
+# 例如：pass = 8*@a~
+$ tair-cli resp --source redis://host:port?authPassword=8*%40a~ --convert --replace > resp.aof
 ```
 
 #### tair-cli 命令行帮助
