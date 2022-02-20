@@ -24,13 +24,13 @@ $ unzip tair-cli-release.zip
 $ cd tair-cli/dashboard
 $ docker-compose up -d
 
-# 打开浏览器 http://localhost:3000. 用户名tair-cli， 密码tair-cli登录grafana
+# 打开浏览器 http://localhost:3000/d/monitor/monitor. 用户名tair-cli， 密码tair-cli登录grafana
 $ cd /path/to/tair-cli/bin
 
 # 生成rdb
 $ ./tair-cli --source redis://host:port?authPassword=pass --convert > dump.rdb
 
-# 监控tair服务器, 执行完下述命令后，刷新http://localhost:3000 看各种监控信息
+# 监控tair服务器, 执行完下述命令后，刷新http://localhost:3000/d/monitor/monitor 看各种监控信息
 $ ./tair-monitor --source redis://host:port?authPassword=pass
 ```
 
@@ -159,4 +159,15 @@ Options:
 ```
 ## tair-monitor 是什么
 
-tair-monitor同样是个命令行工具，在线分析tair的运行情况，并汇总到grafana
+tair-monitor同样是个命令行工具，在线分析tair的运行情况，并汇总到grafana。
+
+```shell
+$ cd /path/to/tair-cli/dashboard
+$ docker-compose up -d 
+$ cd ../bin
+$ ./tair-monitor --source redis://host:port
+
+# 打开浏览器http://localhost:3000/d/monitor/monitor. 用户名tair-cli， 密码tair-cli登录grafana 查看监控信息
+```
+
+![image](image.png)
