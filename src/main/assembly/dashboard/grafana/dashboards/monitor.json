@@ -2140,6 +2140,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "influxdb",
+      "description": "after run `tair-cli memory` could show this panel",
       "fill": 1,
       "gridPos": {
         "h": 6,
@@ -2258,6 +2259,7 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "influxdb",
+      "description": "after run `tair-cli memory` could show this panel",
       "fill": 1,
       "gridPos": {
         "h": 6,
