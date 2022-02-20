@@ -35,3 +35,18 @@ $ ./tair-cli --source redis://host:port?authPassword=pass --convert > dump.rdb
 # 监控tair服务器, 执行完下述命令后，刷新http://localhost:3000/d/monitor/monitor 看各种监控信息
 $ ./tair-monitor --source redis://host:port?authPassword=pass
 ```
+
+### 从源码安装
+
+#### 源码安装的必要依赖
+* java 1.8+
+* maven 3.3+
+
+```shell
+$ cd /path/to/source
+$ git clone https://github.com/leonchen83/tair-cli.git
+$ cd tair-cli
+$ mvn clean install
+$ cd target/tair-cli-release/tair-cli/bin
+$ ./tair-cli --version
+```
