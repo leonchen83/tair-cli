@@ -35,7 +35,7 @@ $ ./tair-cli --source redis://host:port?authPassword=pass --convert > dump.rdb
 
 # 打开浏览器 http://localhost:3000/d/monitor/monitor. 用户名tair-cli， 密码tair-cli登录grafana
 # 监控tair服务器, 执行完下述命令后，刷新http://localhost:3000/d/monitor/monitor 看各种监控信息
-# 注意 pass 带特殊字符需url encode. 例如：pass = 8*@a~ 转移后 pass = 8*%40a~
+# 注意 pass 带特殊字符需url encode. 例如：pass = 8*@a~ 转译后 pass = 8*%40a~
 $ ./tair-monitor --source redis://host:port?authPassword=pass
 ```
 
