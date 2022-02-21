@@ -135,7 +135,13 @@ public class JsonlEventListener extends AbstractEventListener {
 		json(getContext(), () -> {
 			BaseRdbParser parser = new BaseRdbParser(in);
 			byte[] val = parser.rdbLoadEncodedStringObject().first();
-			emitString(val);
+			if (getContext().getEscaper() == null) {
+				emitString(val);
+			} else {
+				OutputStreams.write('"', out);
+				getContext().getEscaper().encode(val, out);
+				OutputStreams.write('"', out);
+			}
 		});
 		return (T) getContext();
 	}
@@ -551,6 +557,7 @@ public class JsonlEventListener extends AbstractEventListener {
 			ByteArrayOutputStream out = new ByteArrayOutputStream(128);
 			tair.convertToRdbValue(in, out);
 			RedisInputStream sin = new RedisInputStream(new ByteArray(out.toByteArray()));
+			if (tair.escaper() != null) getContext().setEscaper(tair.escaper());
 			getContext().setValueRdbType(tair.type());
 			switch (tair.type()) {
 				case RDB_TYPE_STRING:

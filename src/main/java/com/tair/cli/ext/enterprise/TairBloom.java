@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import com.moilioncircle.redis.rdb.cli.api.format.escape.Escaper;
 import com.moilioncircle.redis.replicator.Constants;
 import com.moilioncircle.redis.replicator.io.RawByteListener;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
@@ -27,11 +28,17 @@ import com.moilioncircle.redis.replicator.rdb.BaseRdbEncoder;
 import com.moilioncircle.redis.replicator.rdb.skip.SkipRdbParser;
 import com.moilioncircle.redis.replicator.util.ByteArray;
 import com.moilioncircle.redis.replicator.util.ByteBuilder;
+import com.tair.cli.escape.RedisEscaper;
 
 /**
  * @author Baoyi Chen
  */
 public class TairBloom extends AbstractTair {
+	
+	@Override
+	public Escaper escaper() {
+		return new RedisEscaper((byte)',', (byte)'\"');
+	}
 	
 	@Override
 	public int type() {

@@ -16,6 +16,7 @@
 
 package com.tair.cli.ext;
 
+import com.moilioncircle.redis.rdb.cli.api.format.escape.Escaper;
 import com.moilioncircle.redis.replicator.rdb.dump.datatype.DumpKeyValuePair;
 
 /**
@@ -24,6 +25,7 @@ import com.moilioncircle.redis.replicator.rdb.dump.datatype.DumpKeyValuePair;
 public class XDumpKeyValuePair extends DumpKeyValuePair {
 	private long memoryUsage;
 	private int version;
+	private Escaper escaper;
 	
 	public long getMemoryUsage() {
 		return memoryUsage;
@@ -39,5 +41,13 @@ public class XDumpKeyValuePair extends DumpKeyValuePair {
 	
 	public void setVersion(int version) {
 		this.version = version;
+	}
+	
+	public Escaper getEscaper() {
+		return escaper;
+	}
+	
+	public void setEscaper(Escaper escaper) {
+		this.escaper = escaper;
 	}
 }

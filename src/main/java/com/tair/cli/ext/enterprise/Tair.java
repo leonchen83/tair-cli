@@ -19,12 +19,17 @@ package com.tair.cli.ext.enterprise;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.moilioncircle.redis.rdb.cli.api.format.escape.Escaper;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
 
 /**
  * @author Baoyi Chen
  */
 public interface Tair {
+	
+	default Escaper escaper() {
+		return null;
+	}
 	
 	int type();
 	
