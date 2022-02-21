@@ -11,6 +11,7 @@ WORKDIR /app
 RUN unzip -o /tmp/tair-cli-release.zip \
         && apk add --no-cache bash \
         && rm -f /tmp/tair-cli-release.zip \
-        && ln -s /app/tair-cli/bin/tair-cli /usr/local/bin/tair-cli
+        && ln -s /app/tair-cli/bin/tair-cli /usr/local/bin/tair-cli \
+        && ln -s /app/tair-cli/bin/tair-monitor /usr/local/bin/tair-monitor
 
 WORKDIR /app/tair-cli
