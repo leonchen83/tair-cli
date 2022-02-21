@@ -32,7 +32,6 @@ tair-cli是一个命令行工具，能在线分析tair中保存的数据。并�
 # 生成一个标准rdb ver 6 的文件
 $ tair-cli rdb --source redis://host:port?authPassword=pass --rdb-version 6 --convert --db 0 > dump.rdb
 $ /path/to/redis-2.8.24/src/redis-check-dump dump.rdb
-
 ```
 
 1. 针对问题1，可以设置`--rdb-version` 生成指定版本的rdb文件
@@ -49,9 +48,8 @@ $ /path/to/redis-2.8.24/src/redis-check-dump dump.rdb
 #### tair-cli 的优化空间
 
 1. tair不支持用户发送psync，sync等命令。如果能使用上述命令，可以避免scan的全库扫描
-2. 支持进度条
-3. 更好的支持企业级结构，现在比较好的支持将TairString转String，TairZSet转ZSet，TairHash转Hash，TairDoc转String，其他企业结构转换为binary的String.
-4. 支持大Key的转换
+2. 更好的支持企业级结构，现在比较好的支持将TairString转String，TairZSet转ZSet，TairHash转Hash，TairDoc转String，其他企业结构转换为binary的String.
+3. 支持大Key的转换
 
 #### tair-cli 命令使用实例
 
@@ -113,7 +111,6 @@ Commands:
   memory  Analyze source memory and output to jsonl format.
   jsonl   Convert source to jsonl format.
   count   Count numbers of key in redis.
-
 ```
 
 * tair-cli help \<subcommand\>
@@ -140,7 +137,6 @@ Options:
                               hash, set, sortedset, list, module, stream.
                               multiple types can be provided. if not specified,
                               all data types will be returned.
-
 ```
 ## tair-monitor 是什么
 
