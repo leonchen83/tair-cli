@@ -594,7 +594,7 @@ public class DumpEventListener extends AbstractEventListener {
 				CRCOutputStream crcOut = new CRCOutputStream(out, escaper);
 				OutputStreams.writeQuietly(tair.type(), crcOut);
 				tair.convertToRdbValue(in, crcOut);
-				OutputStreams.writeQuietly(version, crcOut);
+				OutputStreams.writeQuietly(getVersion(version), crcOut);
 				OutputStreams.writeQuietly(0x00, crcOut);
 				OutputStreams.writeQuietly(crcOut.getCRC64(), crcOut);
 				emit(this.out, RESTORE_BUF, wrap(getContext().getKey()), ex, out.toByteBuffers(), replace);
