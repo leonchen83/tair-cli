@@ -39,10 +39,7 @@ import okhttp3.OkHttpClient;
 public class InfluxdbGateway implements MetricGateway {
     private static final Logger logger = LoggerFactory.getLogger(InfluxdbGateway.class);
 
-    public static final String AVG = "avg";
-    public static final String TYPE = "type";
     public static final String VALUE = "value";
-    public static final String MODULE = "module";
     public static final String MTIME = "mtime";
     public static final String PROPERTY = "property";
     public static final String INSTANCE = "instance";
