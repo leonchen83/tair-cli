@@ -39,13 +39,19 @@ public class TairZSet extends AbstractTair {
 	public void convertToRdbValue(RedisInputStream in, OutputStream out) throws IOException {
 		DefaultRdbModuleParser parser = new DefaultRdbModuleParser(in);
 		BaseRdbEncoder encoder = new BaseRdbEncoder();
-		
 		long len = parser.loadSigned(2);
-		parser.loadSigned(2); // a wired value?
+		long num = parser.loadSigned(2);
 		encoder.rdbSaveLen(len, out);
 		for (long i = 0; i < len; i++) {
 			byte[] field = parser.loadStringBuffer(2);
-			double score = parser.loadDouble(2);
+			double score = 0d;
+			for (long j = 0; j < num; j++) {
+				if (j == 0) {
+					score = parser.loadDouble(2);
+				} else {
+					parser.loadDouble(2);
+				}
+			}
 			encoder.rdbGenericSaveStringObject(new ByteArray(field), out);
 			encoder.rdbSaveDoubleValue(score, out);
 		}
