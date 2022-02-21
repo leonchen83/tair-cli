@@ -28,7 +28,7 @@ import picocli.CommandLine;
 /**
  * @author Baoyi Chen
  */
-@CommandLine.Command(name = "tair-cli",
+@CommandLine.Command(name = "tair-monitor",
 		separator = " ",
 		synopsisHeading = "",
 		optionListHeading = "Options:%n",
