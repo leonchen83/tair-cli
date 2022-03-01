@@ -29,6 +29,7 @@ import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_MODULE_2;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_SET;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_SET_INTSET;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STREAM_LISTPACKS;
+import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STREAM_LISTPACKS_2;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STRING;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET_2;
@@ -38,12 +39,14 @@ import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET_ZIPLIST
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Objects;
 
 import com.moilioncircle.redis.replicator.Replicator;
 import com.moilioncircle.redis.replicator.event.Event;
 import com.moilioncircle.redis.replicator.event.EventListener;
 import com.moilioncircle.redis.replicator.event.PostRdbSyncEvent;
+import com.moilioncircle.redis.replicator.io.RawByteListener;
 import com.moilioncircle.redis.replicator.io.RedisInputStream;
 import com.moilioncircle.redis.replicator.rdb.RdbValueVisitor;
 import com.moilioncircle.redis.replicator.rdb.skip.SkipRdbParser;
@@ -141,6 +144,9 @@ public abstract class AbstractEventListener extends RdbValueVisitor implements E
 					break;
 				case RDB_TYPE_STREAM_LISTPACKS:
 					applyStreamListPacks(in, kv.getVersion());
+					break;
+				case RDB_TYPE_STREAM_LISTPACKS_2:
+					applyStreamListPacks2(in, kv.getVersion());
 					break;
 				default:
 					throw new AssertionError("unexpected value type:" + valueType);
@@ -287,6 +293,90 @@ public abstract class AbstractEventListener extends RdbValueVisitor implements E
 			skipParser.rdbLoadPlainStringObject();
 			skipParser.rdbLoadLen();
 			skipParser.rdbLoadLen();
+			long groupPel = skipParser.rdbLoadLen().len;
+			while (groupPel-- > 0) {
+				in.skip(16);
+				skipParser.rdbLoadMillisecondTime();
+				skipParser.rdbLoadLen();
+			}
+			long consumerCount = skipParser.rdbLoadLen().len;
+			while (consumerCount-- > 0) {
+				skipParser.rdbLoadPlainStringObject();
+				skipParser.rdbLoadMillisecondTime();
+				long consumerPel = skipParser.rdbLoadLen().len;
+				while (consumerPel-- > 0) {
+					in.skip(16);
+				}
+			}
+		}
+		return (T) getContext();
+	}
+	
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version) throws IOException {
+		SkipRdbParser skipParser = new SkipRdbParser(in);
+		long listPacks = skipParser.rdbLoadLen().len;
+		while (listPacks-- > 0) {
+			skipParser.rdbLoadPlainStringObject();
+			skipParser.rdbLoadPlainStringObject();
+		}
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		long groupCount = skipParser.rdbLoadLen().len;
+		while (groupCount-- > 0) {
+			skipParser.rdbLoadPlainStringObject();
+			skipParser.rdbLoadLen();
+			skipParser.rdbLoadLen();
+			skipParser.rdbLoadLen();
+			long groupPel = skipParser.rdbLoadLen().len;
+			while (groupPel-- > 0) {
+				in.skip(16);
+				skipParser.rdbLoadMillisecondTime();
+				skipParser.rdbLoadLen();
+			}
+			long consumerCount = skipParser.rdbLoadLen().len;
+			while (consumerCount-- > 0) {
+				skipParser.rdbLoadPlainStringObject();
+				skipParser.rdbLoadMillisecondTime();
+				long consumerPel = skipParser.rdbLoadLen().len;
+				while (consumerPel-- > 0) {
+					in.skip(16);
+				}
+			}
+		}
+		return (T) getContext();
+	}
+	
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version, RawByteListener listener) throws IOException {
+		SkipRdbParser skipParser = new SkipRdbParser(in);
+		long listPacks = skipParser.rdbLoadLen().len;
+		while (listPacks-- > 0) {
+			skipParser.rdbLoadPlainStringObject();
+			skipParser.rdbLoadPlainStringObject();
+		}
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		if (version < 10) in.setRawByteListeners(null);
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		skipParser.rdbLoadLen();
+		if (version < 10) in.setRawByteListeners(Arrays.asList(listener));
+		long groupCount = skipParser.rdbLoadLen().len;
+		while (groupCount-- > 0) {
+			skipParser.rdbLoadPlainStringObject();
+			skipParser.rdbLoadLen();
+			skipParser.rdbLoadLen();
+			if (version < 10) in.setRawByteListeners(null);
+			skipParser.rdbLoadLen();
+			if (version < 10) in.setRawByteListeners(Arrays.asList(listener));
 			long groupPel = skipParser.rdbLoadLen().len;
 			while (groupPel-- > 0) {
 				in.skip(16);

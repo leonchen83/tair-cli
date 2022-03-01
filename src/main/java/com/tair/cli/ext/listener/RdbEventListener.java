@@ -24,6 +24,7 @@ import static com.moilioncircle.redis.replicator.Constants.RDB_OPCODE_RESIZEDB;
 import static com.moilioncircle.redis.replicator.Constants.RDB_OPCODE_SELECTDB;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_HASH;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_LIST;
+import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STREAM_LISTPACKS;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET;
 import static com.moilioncircle.redis.replicator.rdb.BaseRdbParser.StringHelper.listPackEntry;
 import static com.moilioncircle.redis.replicator.rdb.datatype.ExpiredType.MS;
@@ -490,6 +491,26 @@ public class RdbEventListener extends AbstractEventListener {
 			try {
 				in.setRawByteListeners(Arrays.asList(listener));
 				super.applyStreamListPacks(in, version);
+			} finally {
+				in.setRawByteListeners(null);
+			}
+		}
+		return (T) getContext();
+	}
+	
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version) throws IOException {
+		if (getVersion(version) < 9 /* since redis rdb version 8 */) {
+			logger.error("skip generate stream type key [{}] to rdb format. target rdb version [{}] too small", com.moilioncircle.redis.replicator.util.Strings.toString(getContext().getKey()), getVersion(version));
+		} else {
+			if (getVersion(version) < 10) {
+				applyKey(RDB_TYPE_STREAM_LISTPACKS);
+			} else {
+				applyKey(getContext().getValueRdbType());
+			}
+			XRawByteListener listener = new XRawByteListener(crcOut);
+			try {
+				in.setRawByteListeners(Arrays.asList(listener));
+				super.applyStreamListPacks2(in, version, listener);
 			} finally {
 				in.setRawByteListeners(null);
 			}

@@ -230,4 +230,11 @@ public class CountEventListener extends AbstractEventListener {
 		streamCount += 1;
 		return (T) getContext();
 	}
+	
+	@Override
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version) throws IOException {
+		count += 1;
+		streamCount += 1;
+		return (T) getContext();
+	}
 }

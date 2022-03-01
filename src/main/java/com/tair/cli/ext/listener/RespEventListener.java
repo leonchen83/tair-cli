@@ -21,6 +21,7 @@ import static com.moilioncircle.redis.replicator.Constants.QUICKLIST_NODE_CONTAI
 import static com.moilioncircle.redis.replicator.Constants.QUICKLIST_NODE_CONTAINER_PLAIN;
 import static com.moilioncircle.redis.replicator.Constants.RDB_LOAD_NONE;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_HASH;
+import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STREAM_LISTPACKS;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STRING;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET;
 import static com.moilioncircle.redis.replicator.Constants.STAR;
@@ -560,6 +561,27 @@ public class RespEventListener extends AbstractEventListener {
 			try (DumpRawByteListener listener = new DumpRawByteListener(in, version, out, escaper)) {
 				listener.write((byte) getContext().getValueRdbType());
 				super.applyStreamListPacks(in, version);
+			}
+			emit(this.out, RESTORE_BUF, wrap(getContext().getKey()), ex, out.toByteBuffers(), replace);
+			return (T) getContext();
+		}
+	}
+	
+	@Override
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version) throws IOException {
+		ByteBuffer ex = ZERO_BUF;
+		if (context.getExpiredValue() != null) {
+			long ms = context.getExpiredValue() - System.currentTimeMillis();
+			if (ms <= 0) {
+				return super.applyStreamListPacks2(in, version);
+			} else {
+				ex = wrap(String.valueOf(ms).getBytes());
+			}
+		}
+		try (LayeredOutputStream out = new LayeredOutputStream(configure)) {
+			try (DumpRawByteListener listener = new DumpRawByteListener(in, 9, out, escaper)) {
+				listener.write((byte) RDB_TYPE_STREAM_LISTPACKS);
+				super.applyStreamListPacks2(in, 9, listener);
 			}
 			emit(this.out, RESTORE_BUF, wrap(getContext().getKey()), ex, out.toByteBuffers(), replace);
 			return (T) getContext();

@@ -264,4 +264,11 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 		monitor.add("type_memory", "stream", getContext().getMemoryUsage());
 		return (T) getContext();
 	}
+	
+	@Override
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version) throws IOException {
+		monitor.add("type_count", "stream", 1);
+		monitor.add("type_memory", "stream", getContext().getMemoryUsage());
+		return (T) getContext();
+	}
 }

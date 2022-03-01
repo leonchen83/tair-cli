@@ -22,6 +22,7 @@ import static com.moilioncircle.redis.replicator.Constants.QUICKLIST_NODE_CONTAI
 import static com.moilioncircle.redis.replicator.Constants.RDB_LOAD_NONE;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_HASH;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_LIST;
+import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_STREAM_LISTPACKS;
 import static com.moilioncircle.redis.replicator.Constants.RDB_TYPE_ZSET;
 import static com.moilioncircle.redis.replicator.Constants.STAR;
 import static com.moilioncircle.redis.replicator.rdb.BaseRdbParser.StringHelper.listPackEntry;
@@ -619,6 +620,36 @@ public class DumpEventListener extends AbstractEventListener {
 			try (DumpRawByteListener listener = new DumpRawByteListener(in, getVersion(version), out, escaper)) {
 				listener.write((byte) context.getValueRdbType());
 				super.applyStreamListPacks(in, version);
+			}
+			if (getVersion(version) >= 9) {
+				emit(this.out, RESTORE_BUF, wrap(getContext().getKey()), ex, out.toByteBuffers(), replace);
+			} else {
+				logger.error("skip generate stream type key [{}] to dump format. target rdb version [{}] too small", Strings.toString(getContext().getKey()), getVersion(version));
+			}
+			return (T) getContext();
+		}
+	}
+	
+	@Override
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version) throws IOException {
+		ByteBuffer ex = ZERO_BUF;
+		if (context.getExpiredValue() != null) {
+			long ms = context.getExpiredValue() - System.currentTimeMillis();
+			if (ms <= 0) {
+				return super.applyStreamListPacks2(in, version);
+			} else {
+				ex = wrap(String.valueOf(ms).getBytes());
+			}
+		}
+		
+		try (LayeredOutputStream out = new LayeredOutputStream(configure)) {
+			try (DumpRawByteListener listener = new DumpRawByteListener(in, getVersion(version), out, escaper)) {
+				if (getVersion(version) < 10) {
+					listener.write((byte) RDB_TYPE_STREAM_LISTPACKS);
+				} else {
+					listener.write((byte) context.getValueRdbType());
+				}
+				super.applyStreamListPacks2(in, getVersion(version), listener);
 			}
 			if (getVersion(version) >= 9) {
 				emit(this.out, RESTORE_BUF, wrap(getContext().getKey()), ex, out.toByteBuffers(), replace);

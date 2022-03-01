@@ -588,4 +588,17 @@ public class JsonlEventListener extends AbstractEventListener {
 		});
 		return (T) getContext();
 	}
+	
+	@Override
+	public <T> T applyStreamListPacks2(RedisInputStream in, int version) throws IOException {
+		json(getContext(), () -> {
+			OutputStreams.write('"', out);
+			try (DumpRawByteListener listener = new DumpRawByteListener(in, version, out, new RedisEscaper((byte)',', (byte)'\"'))) {
+				listener.write((byte) getContext().getValueRdbType());
+				super.applyStreamListPacks2(in, version);
+			}
+			OutputStreams.write('"', out);
+		});
+		return (T) getContext();
+	}
 }
