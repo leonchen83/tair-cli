@@ -48,7 +48,7 @@ public class TairRoaring extends AbstractTair {
 	@Override
 	public void convertToRdbValue(RedisInputStream in, OutputStream out) throws IOException {
 		BaseRdbEncoder encoder = new BaseRdbEncoder();
-		byte[] bytes = rdbSaveLen(id);
+		byte[] bytes = encoder.rdbSaveLen(id);
 		ByteBuilder builder = ByteBuilder.allocate(64);
 		builder.put((byte)Constants.RDB_TYPE_MODULE_2);
 		builder.put(bytes);
