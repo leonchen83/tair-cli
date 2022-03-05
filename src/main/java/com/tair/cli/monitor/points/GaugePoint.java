@@ -16,23 +16,23 @@
 
 package com.tair.cli.monitor.points;
 
-import com.tair.cli.monitor.entity.Gauge;
-import com.tair.cli.monitor.entity.Monitor;
+import com.tair.cli.monitor.Gauge;
+import com.tair.cli.monitor.Monitor;
 
 /**
  * @author Baoyi Chen
  */
-public class StringGaugePoint {
-	private String value;
+public class GaugePoint<T> {
+	private T value;
 	private long timestamp;
 	private String property;
 	private String monitorName;
 	
-	public String getValue() {
+	public T getValue() {
 		return value;
 	}
 	
-	public void setValue(String value) {
+	public void setValue(T value) {
 		this.value = value;
 	}
 	
@@ -60,22 +60,22 @@ public class StringGaugePoint {
 		this.monitorName = monitorName;
 	}
 	
-	public static StringGaugePoint valueOf(Monitor monitor, String key, Gauge<String> gauge) {
-		StringGaugePoint point = new StringGaugePoint();
+	public static <T> GaugePoint<T> valueOf(Monitor monitor, String key, Gauge<T> gauge) {
+		GaugePoint<T> point = new GaugePoint<>();
 		point.monitorName = key;
-		point.value = gauge.getGauge().getV1();
 		point.property = gauge.getGauge().getV2();
 		point.timestamp = System.currentTimeMillis();
+		point.value = gauge.getGauge().getV1();
 		return point;
 	}
 	
 	@Override
 	public String toString() {
-		return "StringGaugePoint{" +
-				"value='" + value + '\'' +
-				", timestamp=" + timestamp +
+		return "GaugePoint{" +
+				"monitorName='" + monitorName + '\'' +
 				", property='" + property + '\'' +
-				", monitorName='" + monitorName + '\'' +
+				", timestamp=" + timestamp +
+				", value=" + value +
 				'}';
 	}
 }

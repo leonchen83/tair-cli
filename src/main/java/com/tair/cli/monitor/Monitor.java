@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.tair.cli.monitor.entity;
+package com.tair.cli.monitor;
 
 import java.util.Map;
 

@@ -20,11 +20,8 @@ import java.io.IOException;
 import java.util.List;
 
 import com.tair.cli.monitor.gateway.MetricGateway;
-import com.tair.cli.monitor.points.DoubleCounterPoint;
-import com.tair.cli.monitor.points.DoubleGaugePoint;
-import com.tair.cli.monitor.points.LongCounterPoint;
-import com.tair.cli.monitor.points.LongGaugePoint;
-import com.tair.cli.monitor.points.StringGaugePoint;
+import com.tair.cli.monitor.points.CounterPoint;
+import com.tair.cli.monitor.points.GaugePoint;
 
 /**
  * @author Baoyi Chen
@@ -37,7 +34,7 @@ public class NoneGateway implements MetricGateway {
     }
 
     @Override
-    public boolean save(List<DoubleCounterPoint> dcpoints, List<LongCounterPoint> lcpoints, List<StringGaugePoint> spoints, List<DoubleGaugePoint> dpoints, List<LongGaugePoint> lpoints) {
+    public boolean save(List<GaugePoint<?>> gauges, List<CounterPoint<?>> counters) {
         return true;
     }
 

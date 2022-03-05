@@ -17,15 +17,15 @@
 package com.tair.cli.monitor.points;
 
 import com.moilioncircle.redis.replicator.util.type.Tuple3;
-import com.tair.cli.monitor.entity.Counter;
-import com.tair.cli.monitor.entity.Monitor;
+import com.tair.cli.monitor.Counter;
+import com.tair.cli.monitor.Monitor;
 
 /**
  * @author Baoyi Chen
  */
-public class DoubleCounterPoint {
+public class CounterPoint<T> {
 	private long time;
-	private double value;
+	private T value;
 	private long timestamp;
 	private String property;
 	private String monitorName;
@@ -38,11 +38,11 @@ public class DoubleCounterPoint {
 		this.time = time;
 	}
 	
-	public double getValue() {
+	public T getValue() {
 		return value;
 	}
 	
-	public void setValue(double value) {
+	public void setValue(T value) {
 		this.value = value;
 	}
 	
@@ -70,25 +70,25 @@ public class DoubleCounterPoint {
 		this.monitorName = monitorName;
 	}
 	
-	public static DoubleCounterPoint valueOf(Monitor monitor, String key, Counter<Double> counter) {
-		DoubleCounterPoint point = new DoubleCounterPoint();
+	public static <T> CounterPoint<T> valueOf(Monitor monitor, String key, Counter<T> counter) {
+		Tuple3<T, String, Long> tps = counter.getCounter();
+		CounterPoint<T> point = new CounterPoint<>();
 		point.monitorName = key;
-		Tuple3<Double, String, Long> tps = counter.getCounter();
-		point.value = tps.getV1();
 		point.property = tps.getV2();
-		point.time = tps.getV3();
 		point.timestamp = System.currentTimeMillis();
+		point.time = tps.getV3();
+		point.value = tps.getV1();
 		return point;
 	}
 	
 	@Override
 	public String toString() {
-		return "DoubleCounterPoint{" +
-				"time=" + time +
-				", value=" + value +
-				", timestamp=" + timestamp +
+		return "CounterPoint{" +
+				"monitorName='" + monitorName + '\'' +
 				", property='" + property + '\'' +
-				", monitorName='" + monitorName + '\'' +
+				", timestamp=" + timestamp +
+				", time=" + time +
+				", value=" + value +
 				'}';
 	}
 }

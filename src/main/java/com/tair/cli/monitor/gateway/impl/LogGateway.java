@@ -23,11 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.tair.cli.monitor.gateway.MetricGateway;
-import com.tair.cli.monitor.points.DoubleCounterPoint;
-import com.tair.cli.monitor.points.DoubleGaugePoint;
-import com.tair.cli.monitor.points.LongCounterPoint;
-import com.tair.cli.monitor.points.LongGaugePoint;
-import com.tair.cli.monitor.points.StringGaugePoint;
+import com.tair.cli.monitor.points.CounterPoint;
+import com.tair.cli.monitor.points.GaugePoint;
 
 /**
  * @author Baoyi Chen
@@ -40,22 +37,13 @@ public class LogGateway implements MetricGateway {
     public void reset(String measurement) {
         
     }
-
+    
     @Override
-    public boolean save(List<DoubleCounterPoint> dcpoints, List<LongCounterPoint> lcpoints, List<StringGaugePoint> spoints, List<DoubleGaugePoint> dpoints, List<LongGaugePoint> lpoints) {
-        for (DoubleCounterPoint point : dcpoints) {
+    public boolean save(List<GaugePoint<?>> gauges, List<CounterPoint<?>> counters) {
+        for (GaugePoint<?> point : gauges) {
             logger.info(point.toString());
         }
-        for (LongCounterPoint point : lcpoints) {
-            logger.info(point.toString());
-        }
-        for (LongGaugePoint point : lpoints) {
-            logger.info(point.toString());
-        }
-        for (StringGaugePoint point : spoints) {
-            logger.info(point.toString());
-        }
-        for (DoubleGaugePoint point : dpoints) {
+        for (CounterPoint<?> point : counters) {
             logger.info(point.toString());
         }
         return true;

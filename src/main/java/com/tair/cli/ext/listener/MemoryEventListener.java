@@ -29,9 +29,9 @@ import com.tair.cli.conf.Configure;
 import com.tair.cli.escape.JsonEscaper;
 import com.tair.cli.ext.XDumpKeyValuePair;
 import com.tair.cli.glossary.DataType;
+import com.tair.cli.monitor.Monitor;
 import com.tair.cli.monitor.MonitorFactory;
 import com.tair.cli.monitor.MonitorManager;
-import com.tair.cli.monitor.entity.Monitor;
 import com.tair.cli.util.CmpHeap;
 import com.tair.cli.util.OutputStreams;
 import com.tair.cli.util.Tuple2Ex;
@@ -54,7 +54,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 		this.bytes = bytes;
 		this.configure = configure;
 		this.manager = new MonitorManager(configure);
-		this.manager.open("memory_statistics");
+		this.manager.open(true, "type_count", "type_memory");
 		this.heap = new CmpHeap<>(limit == null ? -1 : limit.intValue());
 		this.heap.setConsumer(this);
 	}
@@ -92,8 +92,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	@Override
 	public void onEvent(Replicator replicator, Event event) {
 		if (event instanceof PreRdbSyncEvent) {
-			manager.reset("type_count");
-			manager.reset("type_memory");
+			manager.reset("type_count", "type_memory");
 			long now = System.currentTimeMillis();
 			monitor.set("monitor", configure.get("instance"), now);
 		} else if (event instanceof XDumpKeyValuePair) {

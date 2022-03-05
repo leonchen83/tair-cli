@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.LongAdder;
 
 import com.moilioncircle.redis.replicator.util.Tuples;
 import com.moilioncircle.redis.replicator.util.type.Tuple3;
-import com.tair.cli.monitor.entity.Counter;
+import com.tair.cli.monitor.Counter;
 
 /**
  * @author Baoyi Chen

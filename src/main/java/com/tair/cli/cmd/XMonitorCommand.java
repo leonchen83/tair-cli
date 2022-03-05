@@ -28,9 +28,9 @@ import org.slf4j.LoggerFactory;
 import com.moilioncircle.redis.replicator.Configuration;
 import com.moilioncircle.redis.replicator.RedisURI;
 import com.tair.cli.conf.Configure;
+import com.tair.cli.monitor.Monitor;
 import com.tair.cli.monitor.MonitorFactory;
 import com.tair.cli.monitor.MonitorManager;
-import com.tair.cli.monitor.entity.Monitor;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
@@ -55,7 +55,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 	public XMonitorCommand(RedisURI uri, Configure configure) {
 		this.configure = configure;
 		this.manager = new MonitorManager(configure);
-		this.manager.open("tair_monitor");
+		this.manager.open(false);
 		Configuration configuration = configure.merge(uri, true);
 		this.host = uri.getHost();
 		this.port = uri.getPort();

@@ -22,6 +22,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -33,16 +34,10 @@ import org.slf4j.LoggerFactory;
 
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
 import com.tair.cli.conf.Configure;
-import com.tair.cli.monitor.entity.Counter;
-import com.tair.cli.monitor.entity.Gauge;
-import com.tair.cli.monitor.entity.Monitor;
 import com.tair.cli.monitor.gateway.MetricGateway;
 import com.tair.cli.monitor.gateway.MetricGatewayFactory;
-import com.tair.cli.monitor.points.DoubleCounterPoint;
-import com.tair.cli.monitor.points.DoubleGaugePoint;
-import com.tair.cli.monitor.points.LongCounterPoint;
-import com.tair.cli.monitor.points.LongGaugePoint;
-import com.tair.cli.monitor.points.StringGaugePoint;
+import com.tair.cli.monitor.points.CounterPoint;
+import com.tair.cli.monitor.points.GaugePoint;
 import com.tair.cli.util.XThreadFactory;
 
 /**
@@ -64,57 +59,56 @@ public class MonitorManager implements Closeable {
     public void setTimeout(long timeout) {
         this.timeout = timeout;
     }
-
+    
     public void report() {
-        List<LongCounterPoint> longCounters = new ArrayList<>();
-        List<DoubleCounterPoint> doubleCounters = new ArrayList<>();
-        List<LongGaugePoint> longGauges = new ArrayList<>();
-        List<StringGaugePoint> stringGauges = new ArrayList<>();
-        List<DoubleGaugePoint> doubleGauges = new ArrayList<>();
+        List<GaugePoint<?>> gauges = new ArrayList<>();
+        List<CounterPoint<?>> counters = new ArrayList<>();
         try {
             for (Monitor monitor : MonitorFactory.getAllMonitors().values()) {
                 for (final Map.Entry<Tuple2<String, String>, ? extends Gauge<Long>> e : monitor.getLongGauges().entrySet()) {
                     final Gauge<Long> gauge = e.getValue().reset();
                     if (gauge == null) continue;
-                    longGauges.add(LongGaugePoint.valueOf(monitor, e.getKey().getV1(), gauge));
+                    gauges.add(GaugePoint.valueOf(monitor, e.getKey().getV1(), gauge));
                 }
-    
+                
                 for (final Map.Entry<Tuple2<String, String>, ? extends Gauge<String>> e : monitor.getStringGauges().entrySet()) {
                     final Gauge<String> gauge = e.getValue().reset();
                     if (gauge == null) continue;
-                    stringGauges.add(StringGaugePoint.valueOf(monitor, e.getKey().getV1(), gauge));
+                    gauges.add(GaugePoint.valueOf(monitor, e.getKey().getV1(), gauge));
                 }
-    
+                
                 for (final Map.Entry<Tuple2<String, String>, ? extends Gauge<Double>> e : monitor.getDoubleGauges().entrySet()) {
                     final Gauge<Double> gauge = e.getValue().reset();
                     if (gauge == null) continue;
-                    doubleGauges.add(DoubleGaugePoint.valueOf(monitor, e.getKey().getV1(), gauge));
+                    gauges.add(GaugePoint.valueOf(monitor, e.getKey().getV1(), gauge));
                 }
-    
+                
                 for (final Map.Entry<Tuple2<String, String>, ? extends Counter<Long>> e : monitor.getLongCounters().entrySet()) {
                     final Counter<Long> counter = e.getValue().reset();
                     if (counter == null) continue;
-                    longCounters.add(LongCounterPoint.valueOf(monitor, e.getKey().getV1(), counter));
+                    counters.add(CounterPoint.valueOf(monitor, e.getKey().getV1(), counter));
                 }
-    
+                
                 for (final Map.Entry<Tuple2<String, String>, ? extends Counter<Double>> e : monitor.getDoubleCounters().entrySet()) {
                     final Counter<Double> counter = e.getValue().reset();
                     if (counter == null) continue;
-                    doubleCounters.add(DoubleCounterPoint.valueOf(monitor, e.getKey().getV1(), counter));
+                    counters.add(CounterPoint.valueOf(monitor, e.getKey().getV1(), counter));
                 }
             }
-            metricGateway.save(doubleCounters, longCounters, stringGauges, doubleGauges, longGauges);
+            metricGateway.save(gauges, counters);
         } catch (Throwable e) {
             logger.error("failed to report points.", e);
         }
     }
     
-    public void reset(String measurement) {
-        logger.debug("reset measurement {}", measurement);
-        metricGateway.reset(measurement);
+    public void reset(String... measurements) {
+        if (measurements == null) return;
+        logger.debug("reset measurement {}", Arrays.toString(measurements));
+        for (String measurement : measurements) metricGateway.reset(measurement);
     }
 
-    public void open(String measurement) {
+    public void open(boolean reset, String... measurements) {
+        if (reset) reset(measurements);
         logger.debug("open monitor manager");
         executor.scheduleWithFixedDelay(this::report, timeout, timeout, TimeUnit.MILLISECONDS);
     }

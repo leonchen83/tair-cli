@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.moilioncircle.redis.replicator.util.Tuples;
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
-import com.tair.cli.monitor.entity.Gauge;
+import com.tair.cli.monitor.Gauge;
 
 /**
  * @author Baoyi Chen

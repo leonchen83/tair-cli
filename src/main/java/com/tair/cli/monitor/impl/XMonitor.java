@@ -21,9 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.moilioncircle.redis.replicator.util.Tuples;
 import com.moilioncircle.redis.replicator.util.type.Tuple2;
-import com.tair.cli.monitor.entity.Counter;
-import com.tair.cli.monitor.entity.Gauge;
-import com.tair.cli.monitor.entity.Monitor;
+import com.tair.cli.monitor.Counter;
+import com.tair.cli.monitor.Gauge;
+import com.tair.cli.monitor.Monitor;
 
 /**
  * @author Jingqi Xu

@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.tair.cli.monitor.entity.Monitor;
 import com.tair.cli.monitor.impl.XMonitor;
 
 /**

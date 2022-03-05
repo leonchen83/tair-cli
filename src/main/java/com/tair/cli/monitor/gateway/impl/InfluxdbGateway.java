@@ -22,11 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import com.tair.cli.conf.Configure;
 import com.tair.cli.monitor.gateway.MetricGateway;
-import com.tair.cli.monitor.points.DoubleCounterPoint;
-import com.tair.cli.monitor.points.DoubleGaugePoint;
-import com.tair.cli.monitor.points.LongCounterPoint;
-import com.tair.cli.monitor.points.LongGaugePoint;
-import com.tair.cli.monitor.points.StringGaugePoint;
+import com.tair.cli.monitor.points.CounterPoint;
+import com.tair.cli.monitor.points.GaugePoint;
 import com.tair.cli.util.XThreadFactory;
 
 import okhttp3.ConnectionPool;
@@ -88,96 +85,66 @@ public class InfluxdbGateway implements MetricGateway {
     public void close() throws IOException {
         if (this.influxdb != null) this.influxdb.close();
     }
-
+    
     @Override
-    public boolean save(List<DoubleCounterPoint> dcpoints, List<LongCounterPoint> lcpoints, List<StringGaugePoint> spoints, List<DoubleGaugePoint> dpoints, List<LongGaugePoint> lpoints) {
+    public boolean save(List<GaugePoint<?>> gauges, List<CounterPoint<?>> counters) {
         //
-        if (dcpoints.isEmpty() && lcpoints.isEmpty() && spoints.isEmpty() && dpoints.isEmpty() && lpoints.isEmpty()) {
+        if (gauges.isEmpty() && counters.isEmpty()) {
             return false;
         }
-
+        
         //
         try {
-            for (Point p : toLPoints(lpoints)) influxdb.write(p);
-            for (Point p : toSPoints(spoints)) influxdb.write(p);
-            for (Point p : toDPoints(dpoints)) influxdb.write(p);
-            for (Point p : toDCPoints(dcpoints)) influxdb.write(p);
-            for (Point p : toLCPoints(lcpoints)) influxdb.write(p);
+            for (Point p : toGaugePoints(gauges)) influxdb.write(p);
+            for (Point p : toCounterPoints(counters)) influxdb.write(p);
             return true;
         } catch (Throwable t) {
             logger.error("failed to save points. cause {}", t.getMessage());
             return false;
         }
     }
-
-    protected List<Point> toDCPoints(List<DoubleCounterPoint> points) {
-        final List<Point> r = new ArrayList<>((points.size()));
-        for (DoubleCounterPoint point : points) r.add(toDCPoint(point));
+    
+    protected List<Point> toCounterPoints(List<CounterPoint<?>> counters) {
+        final List<Point> r = new ArrayList<>((counters.size()));
+        for (CounterPoint<?> point : counters) r.add(toCounterPoint(point));
         return r;
     }
-
-    protected Point toDCPoint(final DoubleCounterPoint point) {
+    
+    protected Point toCounterPoint(CounterPoint<?> point) {
         final String name = point.getMonitorName();
-        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
-        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
+        Point.Builder builder = Point.measurement(name);
+        builder.time(point.getTimestamp(), MILLISECONDS);
+        if (point.getValue() instanceof Long) {
+            builder.addField(VALUE, (Long) point.getValue());
+        } else if (point.getValue() instanceof Double) {
+            builder.addField(VALUE, (Double) point.getValue());
+        } else if (point.getValue() instanceof String) {
+            builder.addField(VALUE, (String) point.getValue());
+        }
+        builder.tag(INSTANCE, instance);
         if (point.getTime() > 0) builder.addField(MTIME, point.getTime());
         if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
         return builder.build();
     }
     
-    protected List<Point> toLCPoints(List<LongCounterPoint> points) {
+    protected List<Point> toGaugePoints(List<GaugePoint<?>> points) {
         final List<Point> r = new ArrayList<>((points.size()));
-        for (LongCounterPoint point : points) r.add(toLCPoint(point));
+        for (GaugePoint<?> point : points) r.add(toGaugePoint(point));
         return r;
     }
     
-    protected Point toLCPoint(final LongCounterPoint point) {
+    protected Point toGaugePoint(GaugePoint<?> point) {
         final String name = point.getMonitorName();
-        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
-        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
-        if (point.getTime() > 0) builder.addField(MTIME, point.getTime());
-        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
-        return builder.build();
-    }
-    
-    protected List<Point> toLPoints(List<LongGaugePoint> points) {
-        final List<Point> r = new ArrayList<>((points.size()));
-        for (LongGaugePoint point : points) r.add(toLPoint(point));
-        return r;
-    }
-    
-    protected Point toLPoint(final LongGaugePoint point) {
-        final String name = point.getMonitorName();
-        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
-        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
-        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
-        return builder.build();
-    }
-    
-    protected List<Point> toSPoints(List<StringGaugePoint> points) {
-        final List<Point> r = new ArrayList<>((points.size()));
-        for (StringGaugePoint point : points) r.add(toSPoint(point));
-        return r;
-    }
-    
-    protected Point toSPoint(final StringGaugePoint point) {
-        final String name = point.getMonitorName();
-        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
-        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
-        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
-        return builder.build();
-    }
-    
-    protected List<Point> toDPoints(List<DoubleGaugePoint> points) {
-        final List<Point> r = new ArrayList<>((points.size()));
-        for (DoubleGaugePoint point : points) r.add(toDPoint(point));
-        return r;
-    }
-    
-    protected Point toDPoint(final DoubleGaugePoint point) {
-        final String name = point.getMonitorName();
-        Point.Builder builder = Point.measurement(name).time(point.getTimestamp(), MILLISECONDS);
-        builder.addField(VALUE, point.getValue()).tag(INSTANCE, instance);
+        Point.Builder builder = Point.measurement(name);
+        builder.time(point.getTimestamp(), MILLISECONDS);
+        if (point.getValue() instanceof Long) {
+            builder.addField(VALUE, (Long) point.getValue());
+        } else if (point.getValue() instanceof Double) {
+            builder.addField(VALUE, (Double) point.getValue());
+        } else if (point.getValue() instanceof String) {
+            builder.addField(VALUE, (String) point.getValue());
+        }
+        builder.tag(INSTANCE, instance);
         if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
         return builder.build();
     }
