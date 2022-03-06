@@ -54,7 +54,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 		this.bytes = bytes;
 		this.configure = configure;
 		this.manager = new MonitorManager(configure);
-		this.manager.open("type_count", "type_memory");
+		this.manager.open("type_count", "type_memory", "big_key");
 		this.heap = new CmpHeap<>(limit == null ? -1 : limit.intValue());
 		this.heap.setConsumer(this);
 	}
@@ -92,7 +92,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 	@Override
 	public void onEvent(Replicator replicator, Event event) {
 		if (event instanceof PreRdbSyncEvent) {
-			manager.reset("type_count", "type_memory");
+			manager.reset("type_count", "type_memory", "big_key");
 			long now = System.currentTimeMillis();
 			monitor.set("monitor", configure.get("instance"), now);
 		} else if (event instanceof XDumpKeyValuePair) {
@@ -107,6 +107,14 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 		} else if (event instanceof PostRdbSyncEvent) {
 			for (Tuple2Ex tuple : heap.get(true)) {
 				accept(tuple);
+				
+				//
+				XDumpKeyValuePair kv = tuple.getV2();
+				String[] properties = new String[3];
+				properties[0] = new String(kv.getKey());
+				properties[1] = DataType.parse(kv.getValueRdbType()).getValue();
+				properties[2] = "db" + kv.getDb().getDbNumber();
+				monitor.set("big_key", properties, kv.getMemoryUsage());
 			}
 			OutputStreams.flushQuietly(out);
 			OutputStreams.closeQuietly(out);
