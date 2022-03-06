@@ -16,15 +16,14 @@
 
 package com.tair.cli.monitor;
 
-import com.moilioncircle.redis.replicator.util.type.Tuple3;
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
 
 /**
- * 
- * @author Jingqi Xu
+ * @author Baoyi Chen
  */
 public interface Counter<T> {
     
     Counter<T> reset();
     
-    Tuple3<T, String, Long> getCounter();
+    Tuple2<T, Long> getCounter();
 }

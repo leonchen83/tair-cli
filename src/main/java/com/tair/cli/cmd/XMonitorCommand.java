@@ -55,7 +55,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 	public XMonitorCommand(RedisURI uri, Configure configure) {
 		this.configure = configure;
 		this.manager = new MonitorManager(configure);
-		this.manager.open(false);
+		this.manager.open();
 		Configuration configuration = configure.merge(uri, true);
 		this.host = uri.getHost();
 		this.port = uri.getPort();

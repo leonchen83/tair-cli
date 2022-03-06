@@ -846,7 +846,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "$tag_property",
+          "alias": "$tag_property0",
           "groupBy": [
             {
               "params": [
@@ -856,7 +856,7 @@
             },
             {
               "params": [
-                "property"
+                "property0"
               ],
               "type": "tag"
             },
@@ -1018,7 +1018,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "$tag_property",
+          "alias": "$tag_property0",
           "groupBy": [
             {
               "params": [
@@ -1028,7 +1028,7 @@
             },
             {
               "params": [
-                "property"
+                "property0"
               ],
               "type": "tag"
             },
@@ -2172,7 +2172,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "$tag_property",
+          "alias": "$tag_property0",
           "groupBy": [
             {
               "params": [
@@ -2189,7 +2189,7 @@
           ],
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT sum(\"value\") FROM \"30days\".\"type_count\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY \"property\" fill(null)",
+          "query": "SELECT sum(\"value\") FROM \"30days\".\"type_count\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY \"property0\" fill(null)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -2291,7 +2291,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "alias": "$tag_property",
+          "alias": "$tag_property0",
           "groupBy": [
             {
               "params": [
@@ -2308,7 +2308,7 @@
           ],
           "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT sum(\"value\") FROM \"30days\".\"type_memory\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY \"property\" fill(null)",
+          "query": "SELECT sum(\"value\") FROM \"30days\".\"type_memory\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY \"property0\" fill(null)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
@@ -2389,7 +2389,7 @@
         "multi": false,
         "name": "instance",
         "options": [],
-        "query": "show tag values from monitor with key = \"property\"",
+        "query": "show tag values from monitor with key = \"property0\"",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,

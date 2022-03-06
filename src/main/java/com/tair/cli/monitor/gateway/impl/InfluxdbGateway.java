@@ -123,7 +123,12 @@ public class InfluxdbGateway implements MetricGateway {
         }
         builder.tag(INSTANCE, instance);
         if (point.getTime() > 0) builder.addField(MTIME, point.getTime());
-        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
+        if (point.getProperties() != null) {
+            String[] properties = point.getProperties();
+            for (int i = 0; i < properties.length; i++) {
+                builder.tag(PROPERTY + i, properties[i]);
+            }
+        }
         return builder.build();
     }
     
@@ -145,7 +150,12 @@ public class InfluxdbGateway implements MetricGateway {
             builder.addField(VALUE, (String) point.getValue());
         }
         builder.tag(INSTANCE, instance);
-        if (point.getProperty() != null) builder.tag(PROPERTY, point.getProperty());
+        if (point.getProperties() != null) {
+            String[] properties = point.getProperties();
+            for (int i = 0; i < properties.length; i++) {
+                builder.tag(PROPERTY + i, properties[i]);
+            }
+        }
         return builder.build();
     }
 

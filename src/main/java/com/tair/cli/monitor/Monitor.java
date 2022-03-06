@@ -18,8 +18,6 @@ package com.tair.cli.monitor;
 
 import java.util.Map;
 
-import com.moilioncircle.redis.replicator.util.type.Tuple2;
-
 /**
  * @author Baoyi Chen
  */
@@ -30,15 +28,15 @@ public interface Monitor {
 
     String getName();
     
-    Map<Tuple2<String, String>, ? extends Counter<Long>> getLongCounters();
+    Map<MonitorKey, ? extends Counter<Long>> getLongCounters();
     
-    Map<Tuple2<String, String>, ? extends Counter<Double>> getDoubleCounters();
+    Map<MonitorKey, ? extends Counter<Double>> getDoubleCounters();
     
-    Map<Tuple2<String, String>, ? extends Gauge<Long>> getLongGauges();
+    Map<MonitorKey, ? extends Gauge<Long>> getLongGauges();
     
-    Map<Tuple2<String, String>, ? extends Gauge<Double>> getDoubleGauges();
+    Map<MonitorKey, ? extends Gauge<Double>> getDoubleGauges();
     
-    Map<Tuple2<String, String>, ? extends Gauge<String>> getStringGauges();
+    Map<MonitorKey, ? extends Gauge<String>> getStringGauges();
 
     /**
      * Counter

@@ -16,9 +16,12 @@
 
 package com.tair.cli.monitor.points;
 
-import com.moilioncircle.redis.replicator.util.type.Tuple3;
+import java.util.Arrays;
+
+import com.moilioncircle.redis.replicator.util.type.Tuple2;
 import com.tair.cli.monitor.Counter;
 import com.tair.cli.monitor.Monitor;
+import com.tair.cli.monitor.MonitorKey;
 
 /**
  * @author Baoyi Chen
@@ -27,7 +30,7 @@ public class CounterPoint<T> {
 	private long time;
 	private T value;
 	private long timestamp;
-	private String property;
+	private String[] properties;
 	private String monitorName;
 	
 	public long getTime() {
@@ -54,12 +57,12 @@ public class CounterPoint<T> {
 		this.timestamp = timestamp;
 	}
 	
-	public String getProperty() {
-		return property;
+	public String[] getProperties() {
+		return properties;
 	}
 	
-	public void setProperty(String property) {
-		this.property = property;
+	public void setProperties(String[] properties) {
+		this.properties = properties;
 	}
 	
 	public String getMonitorName() {
@@ -70,13 +73,13 @@ public class CounterPoint<T> {
 		this.monitorName = monitorName;
 	}
 	
-	public static <T> CounterPoint<T> valueOf(Monitor monitor, String key, Counter<T> counter) {
-		Tuple3<T, String, Long> tps = counter.getCounter();
+	public static <T> CounterPoint<T> valueOf(Monitor monitor, MonitorKey key, Counter<T> counter) {
+		Tuple2<T, Long> tps = counter.getCounter();
 		CounterPoint<T> point = new CounterPoint<>();
-		point.monitorName = key;
-		point.property = tps.getV2();
+		point.monitorName = key.getKey();
+		point.properties = key.getProperties();
 		point.timestamp = System.currentTimeMillis();
-		point.time = tps.getV3();
+		point.time = tps.getV2();
 		point.value = tps.getV1();
 		return point;
 	}
@@ -85,7 +88,7 @@ public class CounterPoint<T> {
 	public String toString() {
 		return "CounterPoint{" +
 				"monitorName='" + monitorName + '\'' +
-				", property='" + property + '\'' +
+				", properties=" + Arrays.toString(properties) +
 				", timestamp=" + timestamp +
 				", time=" + time +
 				", value=" + value +

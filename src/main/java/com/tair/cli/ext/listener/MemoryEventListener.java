@@ -54,7 +54,7 @@ public class MemoryEventListener extends AbstractEventListener implements Consum
 		this.bytes = bytes;
 		this.configure = configure;
 		this.manager = new MonitorManager(configure);
-		this.manager.open(true, "type_count", "type_memory");
+		this.manager.open("type_count", "type_memory");
 		this.heap = new CmpHeap<>(limit == null ? -1 : limit.intValue());
 		this.heap.setConsumer(this);
 	}

@@ -18,8 +18,6 @@ package com.tair.cli.monitor.impl;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.moilioncircle.redis.replicator.util.Tuples;
-import com.moilioncircle.redis.replicator.util.type.Tuple2;
 import com.tair.cli.monitor.Gauge;
 
 /**
@@ -27,20 +25,19 @@ import com.tair.cli.monitor.Gauge;
  */
 public class XDoubleGauge implements Gauge<Double> {
 	private final AtomicReference<Double> gauge = new AtomicReference<>(0d);
-	private final AtomicReference<String> property = new AtomicReference<>();
 	
 	@Override
-	public Tuple2<Double, String> getGauge() {
-		return Tuples.of(this.gauge.get(), this.property.get());
+	public Double getGauge() {
+		return this.gauge.get();
 	}
 	
 	@Override
 	public XDoubleGauge reset() {
-		Double v = gauge.getAndSet(0d);
+		double v = gauge.getAndSet(0d);
 		if (v == 0) {
 			return null;
 		} else {
-			return new ImmutableXDoubleGauge(v, property.get());
+			return new ImmutableXDoubleGauge(v);
 		}
 	}
 	
@@ -48,17 +45,11 @@ public class XDoubleGauge implements Gauge<Double> {
 		gauge.set(value);
 	}
 	
-	void setProperty(String value) {
-		property.compareAndSet(null, value);
-	}
-	
 	private static class ImmutableXDoubleGauge extends XDoubleGauge {
 		private final Double value;
-		private final String property;
 		
-		public ImmutableXDoubleGauge(Double v, String p) {
+		public ImmutableXDoubleGauge(Double v) {
 			this.value = v;
-			this.property = p;
 		}
 		
 		@Override
@@ -67,8 +58,8 @@ public class XDoubleGauge implements Gauge<Double> {
 		}
 		
 		@Override
-		public Tuple2<Double, String> getGauge() {
-			return Tuples.of(this.value, this.property);
+		public Double getGauge() {
+			return this.value;
 		}
 	}
 }
