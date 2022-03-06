@@ -24,7 +24,6 @@ import com.tair.cli.monitor.Gauge;
 import com.tair.cli.monitor.Monitor;
 import com.tair.cli.monitor.MonitorKey;
 
-
 /**
  * @author Jingqi Xu
  */
@@ -65,17 +64,32 @@ public class XMonitor implements Monitor {
 	
 	@Override
 	public void set(String measurement, String property, long value) {
-		this.doSetLong(measurement, property, value);
+		this.doSetLong(measurement, new String[]{property}, value);
 	}
 	
 	@Override
 	public void set(String measurement, String property, double value) {
-		this.doSetDouble(measurement, property, value);
+		this.doSetDouble(measurement, new String[]{property}, value);
 	}
 	
 	@Override
 	public void set(String measurement, String property, String value) {
-		this.doSetString(measurement, property, value);
+		this.doSetString(measurement, new String[]{property}, value);
+	}
+	
+	@Override
+	public void set(String measurement, String[] properties, long value) {
+		this.doSetLong(measurement, properties, value);
+	}
+	
+	@Override
+	public void set(String measurement, String[] properties, double value) {
+		this.doSetDouble(measurement, properties, value);
+	}
+	
+	@Override
+	public void set(String measurement, String[] properties, String value) {
+		this.doSetString(measurement, properties, value);
 	}
 	
 	@Override
@@ -90,12 +104,22 @@ public class XMonitor implements Monitor {
 	
 	@Override
 	public final void add(String measurement, String property, long count) {
-		this.doAddLong(measurement, property, count, 0);
+		this.doAddLong(measurement, new String[]{property}, count, 0);
 	}
 	
 	@Override
 	public final void add(String measurement, String property, long count, long time) {
-		this.doAddLong(measurement, property, count, time);
+		this.doAddLong(measurement, new String[]{property}, count, time);
+	}
+	
+	@Override
+	public void add(String measurement, String[] properties, long count) {
+		this.doAddLong(measurement, properties, count, 0);
+	}
+	
+	@Override
+	public void add(String measurement, String[] properties, long count, long time) {
+		this.doAddLong(measurement, properties, count, time);
 	}
 	
 	@Override
@@ -110,12 +134,22 @@ public class XMonitor implements Monitor {
 	
 	@Override
 	public final void add(String measurement, String property, double count) {
-		this.doAddDouble(measurement, property, count, 0);
+		this.doAddDouble(measurement, new String[]{property}, count, 0);
 	}
 	
 	@Override
 	public final void add(String measurement, String property, double count, long time) {
-		this.doAddDouble(measurement, property, count, time);
+		this.doAddDouble(measurement, new String[]{property}, count, time);
+	}
+	
+	@Override
+	public void add(String measurement, String[] properties, double count) {
+		this.doAddDouble(measurement, properties, count, 0);
+	}
+	
+	@Override
+	public void add(String measurement, String[] properties, double count, long time) {
+		this.doAddDouble(measurement, properties, count, time);
 	}
 	
 	@Override
@@ -150,35 +184,35 @@ public class XMonitor implements Monitor {
 		}
 	}
 	
-	protected void doAddLong(String k, String p, long c, long t) {
+	protected void doAddLong(String k, String[] p, long c, long t) {
 		MonitorKey key = MonitorKey.key(k, p);
 		XLongCounter x = longCounters.get(key);
 		if (x == null) x = putIfAbsent(longCounters, key, new XLongCounter());
 		x.add(c, t);
 	}
 	
-	protected void doAddDouble(String k, String p, double c, long t) {
+	protected void doAddDouble(String k, String[] p, double c, long t) {
 		MonitorKey key = MonitorKey.key(k, p);
 		XDoubleCounter x = doubleCounters.get(key);
 		if (x == null) x = putIfAbsent(doubleCounters, key, new XDoubleCounter());
 		x.add(c, t);
 	}
 	
-	protected void doSetLong(String k, String p, final long v) {
+	protected void doSetLong(String k, String[] p, final long v) {
 		MonitorKey key = MonitorKey.key(k, p);
 		XLongGauge x = this.longGauges.get(key);
 		if (x == null) x = putIfAbsent(longGauges, key, new XLongGauge());
 		x.set(v);
 	}
 	
-	protected void doSetDouble(String k, String p, final double v) {
+	protected void doSetDouble(String k, String[] p, final double v) {
 		MonitorKey key = MonitorKey.key(k, p);
 		XDoubleGauge x = this.doubleGauges.get(key);
 		if (x == null) x = putIfAbsent(doubleGauges, key, new XDoubleGauge());
 		x.set(v);
 	}
 	
-	protected void doSetString(String k, String p, final String v) {
+	protected void doSetString(String k, String[] p, final String v) {
 		MonitorKey key = MonitorKey.key(k, p);
 		XStringGauge x = this.stringGauges.get(key);
 		if (x == null) x = putIfAbsent(stringGauges, key, new XStringGauge());
