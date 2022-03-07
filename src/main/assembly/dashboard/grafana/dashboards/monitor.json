@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1646633973553,
+  "iteration": 1646661437454,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2080,7 +2080,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 10,
         "w": 12,
         "x": 0,
         "y": 25
@@ -2173,7 +2173,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
+        "h": 10,
         "w": 12,
         "x": 12,
         "y": 25
@@ -2359,7 +2359,7 @@
         "h": 11,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 35
       },
       "id": 35,
       "options": {
@@ -2435,9 +2435,10 @@
     "list": [
       {
         "current": {
+          "isNone": true,
           "selected": false,
-          "text": "r-f8zvy0bhoiflzlioz7pd_redis_rds_aliyuncs_com_6379",
-          "value": "r-f8zvy0bhoiflzlioz7pd_redis_rds_aliyuncs_com_6379"
+          "text": "None",
+          "value": ""
         },
         "datasource": {
           "type": "influxdb",
@@ -2494,6 +2495,6 @@
   "timezone": "",
   "title": "monitor",
   "uid": "monitor",
-  "version": 4,
+  "version": 2,
   "weekStart": ""
 }
