@@ -106,7 +106,7 @@ public class RdbEventListener extends AbstractEventListener {
 					db = dkv.getDb();
 					OutputStreams.write(RDB_OPCODE_SELECTDB, crcOut);
 					encoder.rdbSaveLen(db.getDbNumber(), crcOut);
-					if (rdbVersion >= 7) {
+					if (getVersion(dkv.getVersion()) >= 7) {
 						OutputStreams.write(RDB_OPCODE_RESIZEDB, crcOut);
 						encoder.rdbSaveLen(db.getDbsize(), crcOut);
 						encoder.rdbSaveLen(db.getExpires(), crcOut);
