@@ -128,6 +128,11 @@ public class XMonitorCommand implements Runnable, Closeable {
 			// Stats
 			setLong("Stats", "total_connections_received", map);
 			setLong("Stats", "total_commands_processed", map);
+			
+			setLong("Stats", "total_reads_processed", map);
+			setLong("Stats", "total_writes_processed", map);
+			setLong("Stats", "total_error_replies", map);
+			
 			setLong("Stats", "total_net_input_bytes", map);
 			setLong("Stats", "total_net_output_bytes", map);
 			setLong("Stats", "evicted_keys_per_sec", map);
@@ -154,8 +159,12 @@ public class XMonitorCommand implements Runnable, Closeable {
 			diffLong("Stats", "total_net_input_bytes", prev, map, "diff_");
 			diffLong("Stats", "total_net_output_bytes", prev, map, "diff_");
 			
+			diffLong("Stats", "total_reads_processed", prev, map, "diff_");
+			diffLong("Stats", "total_writes_processed", prev, map, "diff_");
+			diffLong("Stats", "total_error_replies", prev, map, "diff_");
+			
 			prev = map;
-			delay(30, TimeUnit.SECONDS);
+			delay(10, TimeUnit.SECONDS);
 		} catch (JedisConnectionException e) {
 			System.err.println("failed to connect to [" + host + ":" + port + "]");
 			System.exit(-1);
