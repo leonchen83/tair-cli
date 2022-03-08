@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1646728523098,
+  "iteration": 1646728523202,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1720,7 +1720,7 @@
               }
             ]
           },
-          "unit": "none"
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -2012,7 +2012,7 @@
       "pluginVersion": "8.4.3",
       "targets": [
         {
-          "alias": "ops",
+          "alias": "connected",
           "datasource": {
             "type": "influxdb",
             "uid": "P3C6603E967DC8568"
@@ -2031,7 +2031,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "instantaneous_ops_per_sec",
+          "measurement": "connected_clients",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "A",
@@ -2059,7 +2059,7 @@
           ]
         },
         {
-          "alias": "write ops",
+          "alias": "received",
           "datasource": {
             "type": "influxdb",
             "uid": "P3C6603E967DC8568"
@@ -2078,7 +2078,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "instantaneous_write_ops_per_sec",
+          "measurement": "diff_total_connections_received",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "B",
@@ -2106,7 +2106,7 @@
           ]
         },
         {
-          "alias": "read ops",
+          "alias": "blocked",
           "datasource": {
             "type": "influxdb",
             "uid": "P3C6603E967DC8568"
@@ -2125,7 +2125,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "instantaneous_read_ops_per_sec",
+          "measurement": "blocked_clients",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "C",
@@ -2151,56 +2151,9 @@
               "value": "/^$instance$/"
             }
           ]
-        },
-        {
-          "alias": "other ops",
-          "datasource": {
-            "type": "influxdb",
-            "uid": "P3C6603E967DC8568"
-          },
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
-          "measurement": "instantaneous_other_ops_per_sec",
-          "orderByTime": "ASC",
-          "policy": "30days",
-          "refId": "D",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "value"
-                ],
-                "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "instance",
-              "operator": "=~",
-              "value": "/^$instance$/"
-            }
-          ]
         }
       ],
-      "title": "ops info",
+      "title": "client info",
       "type": "timeseries"
     },
     {
@@ -2245,10 +2198,6 @@
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
               }
             ]
           },
@@ -2300,6 +2249,8 @@
           "measurement": "diff_total_commands_processed",
           "orderByTime": "ASC",
           "policy": "30days",
+          "query": "SELECT derivative(last(\"value\"), 1s) FROM \"30days\".\"total_commands_processed\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": false,
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -2312,7 +2263,7 @@
               },
               {
                 "params": [],
-                "type": "mean"
+                "type": "last"
               }
             ]
           ],
@@ -2377,7 +2328,7 @@
               }
             ]
           },
-          "unit": "bytes"
+          "unit": "binBps"
         },
         "overrides": []
       },
@@ -2422,7 +2373,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "diff_total_net_input_bytes",
+          "measurement": "total_net_input_bytes",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "A",
@@ -2438,6 +2389,12 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [
+                  "$__interval"
+                ],
+                "type": "derivative"
               }
             ]
           ],
@@ -2469,7 +2426,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "diff_total_net_output_bytes",
+          "measurement": "total_net_output_bytes",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "B",
@@ -2485,6 +2442,12 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [
+                  "$__interval"
+                ],
+                "type": "derivative"
               }
             ]
           ],
