@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1646732312052,
+  "iteration": 1646732312060,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2440,7 +2440,7 @@
               },
               {
                 "params": [
-                  "$__interval"
+                  "1s"
                 ],
                 "type": "derivative"
               }
@@ -2493,7 +2493,7 @@
               },
               {
                 "params": [
-                  "$__interval"
+                  "1s"
                 ],
                 "type": "derivative"
               }
