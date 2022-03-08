@@ -50,6 +50,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private MonitorManager manager;
 	protected volatile Jedis jedis;
 	protected final DefaultJedisClientConfig config;
+	protected Map<String, Map<String, String>> prev;
 	private static final Monitor monitor = MonitorFactory.getMonitor("tair_monitor");
 	
 	public XMonitorCommand(RedisURI uri, Configure configure) {
@@ -129,8 +130,6 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setLong("Stats", "total_commands_processed", map);
 			setLong("Stats", "total_net_input_bytes", map);
 			setLong("Stats", "total_net_output_bytes", map);
-			setLong("Stats", "expired_keys", map);
-			setLong("Stats", "evicted_keys", map);
 			setLong("Stats", "evicted_keys_per_sec", map);
 			setLong("Stats", "instantaneous_ops_per_sec", map);
 			setLong("Stats", "instantaneous_write_ops_per_sec", map);
@@ -146,6 +145,16 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setDouble("CPU", "used_cpu_sys_children", map);
 			setDouble("CPU", "used_cpu_user_children", map);
 			monitorDB(map);
+			
+			// diff
+			diffLong("Stats", "expired_keys", prev, map);
+			diffLong("Stats", "evicted_keys", prev, map);
+			diffLong("Stats", "total_connections_received", prev, map, "diff_");
+			diffLong("Stats", "total_commands_processed", prev, map, "diff_");
+			diffLong("Stats", "total_net_input_bytes", prev, map, "diff_");
+			diffLong("Stats", "total_net_output_bytes", prev, map, "diff_");
+			
+			prev = map;
 			delay(30, TimeUnit.SECONDS);
 		} catch (JedisConnectionException e) {
 			System.err.println("failed to connect to [" + host + ":" + port + "]");
@@ -154,35 +163,69 @@ public class XMonitorCommand implements Runnable, Closeable {
 	}
 	
 	private void setLong(String key, String field, Map<String, Map<String, String>> map) {
-		if (map.containsKey(key) && map.get(key).containsKey(field)) {
-			String value = map.get(key).get(field);
-			try {
-				monitor.set(field, Long.parseLong(value));
-			} catch (NumberFormatException e) {
-				logger.error("failed to monitor long attribute [{}]", field);
-			}
+		Long value = getLong(key, field, map);
+		if (value != null) {
+			monitor.set(field, value);
 		}
 	}
 	
 	private void setDouble(String key, String field, Map<String, Map<String, String>> map) {
-		if (map.containsKey(key) && map.get(key).containsKey(field)) {
-			String value = map.get(key).get(field);
-			try {
-				monitor.set(field, Double.parseDouble(value));
-			} catch (NumberFormatException e) {
-				logger.error("failed to monitor double attribute [{}]", field);
-			}
+		Double value = getDouble(key, field, map);
+		if (value != null) {
+			monitor.set(field, value);
 		}
 	}
 	
 	private void setString(String key, String field, Map<String, Map<String, String>> map) {
+		String value = getString(key, field, map);
+		if (value != null) {
+			monitor.set(field, value);
+		}
+	}
+	
+	private String getString(String key, String field, Map<String, Map<String, String>> map) {
+		if (map == null) return null;
+		if (map.containsKey(key) && map.get(key).containsKey(field)) {
+			return map.get(key).get(field);
+		}
+		return null;
+	}
+	
+	private Double getDouble(String key, String field, Map<String, Map<String, String>> map) {
+		if (map == null) return null;
 		if (map.containsKey(key) && map.get(key).containsKey(field)) {
 			String value = map.get(key).get(field);
 			try {
-				monitor.set(field, value);
+				return Double.valueOf(value);
 			} catch (NumberFormatException e) {
-				logger.error("failed to monitor string attribute [{}]", field);
+				logger.error("failed to monitor double attribute [{}]", field);
 			}
+		}
+		return null;
+	}
+	
+	private Long getLong(String key, String field, Map<String, Map<String, String>> map) {
+		if (map == null) return null;
+		if (map.containsKey(key) && map.get(key).containsKey(field)) {
+			String value = map.get(key).get(field);
+			try {
+				return Long.valueOf(value);
+			} catch (NumberFormatException e) {
+				logger.error("failed to monitor double attribute [{}]", field);
+			}
+		}
+		return null;
+	}
+	
+	private void diffLong(String key, String field, Map<String, Map<String, String>> prev, Map<String, Map<String, String>> next) {
+		diffLong(key, field, prev, next, "");
+	}
+	
+	private void diffLong(String key, String field, Map<String, Map<String, String>> prev, Map<String, Map<String, String>> next, String prefix) {
+		Long pv = getLong(key, field, prev);
+		Long nv = getLong(key, field, next);
+		if (pv != null && nv != null) {
+			monitor.set(prefix + field, nv - pv);
 		}
 	}
 	
