@@ -179,8 +179,8 @@ public class XMonitorCommand implements Runnable, Closeable {
 			prevInfo = nextInfo;
 			
 			// slow latency
-			long len = jedis.slowlogLen();
-			List<Object> binaryLogs = jedis.slowlogGetBinary(128); // configurable size ?
+			long len = retry(e -> e.slowlogLen());
+			List<Object> binaryLogs = retry(e -> e.slowlogGetBinary(128)); // configurable size ?
 			List<Slowlog> nextLogs = Slowlog.from(binaryLogs);
 			long nextId = isEmpty(nextLogs) ? 0 : nextLogs.get(0).getId();
 			long prevId = isEmpty(prevLogs) ? nextId : prevLogs.get(0).getId();
