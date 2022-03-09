@@ -53,6 +53,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 	
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 	private static Logger logger = LoggerFactory.getLogger(XMonitorCommand.class);
+	private static final Monitor monitor = MonitorFactory.getMonitor("tair_monitor");
 	
 	private final String host;
 	private final int port;
@@ -60,11 +61,11 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private final int retries = 5;
 	private MonitorManager manager;
 	protected volatile Jedis jedis;
-	protected List<Slowlog> prevLogs;
-	protected RedisCodec codec = new RedisCodec();
 	protected final DefaultJedisClientConfig config;
+	protected RedisCodec codec = new RedisCodec();
+	
+	protected List<Slowlog> prevLogs;
 	protected Map<String, Map<String, String>> prevInfo;
-	private static final Monitor monitor = MonitorFactory.getMonitor("tair_monitor");
 	
 	public XMonitorCommand(RedisURI uri, Configure configure) {
 		this.configure = configure;
