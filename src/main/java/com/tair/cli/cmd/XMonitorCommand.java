@@ -16,31 +16,42 @@
 
 package com.tair.cli.cmd;
 
+import static java.time.Instant.ofEpochMilli;
+import static java.time.ZoneId.systemDefault;
+
 import java.io.Closeable;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.moilioncircle.redis.replicator.Configuration;
 import com.moilioncircle.redis.replicator.RedisURI;
+import com.moilioncircle.redis.replicator.cmd.RedisCodec;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.monitor.Monitor;
 import com.tair.cli.monitor.MonitorFactory;
 import com.tair.cli.monitor.MonitorManager;
+import com.tair.cli.util.Strings;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.resps.Slowlog;
 
 /**
  * @author Baoyi Chen
  */
 public class XMonitorCommand implements Runnable, Closeable {
 	
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 	private static Logger logger = LoggerFactory.getLogger(XMonitorCommand.class);
 	
 	private final String host;
@@ -49,8 +60,10 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private final int retries = 5;
 	private MonitorManager manager;
 	protected volatile Jedis jedis;
+	protected List<Slowlog> prevLogs;
+	protected RedisCodec codec = new RedisCodec();
 	protected final DefaultJedisClientConfig config;
-	protected Map<String, Map<String, String>> prev;
+	protected Map<String, Map<String, String>> prevInfo;
 	private static final Monitor monitor = MonitorFactory.getMonitor("tair_monitor");
 	
 	public XMonitorCommand(RedisURI uri, Configure configure) {
@@ -103,72 +116,115 @@ public class XMonitorCommand implements Runnable, Closeable {
 	public void run() {
 		try {
 			String info = retry(e -> e.info());
-			Map<String, Map<String, String>> map = convert(info);
+			Map<String, Map<String, String>> nextInfo = convert(info);
 			
 			// Server
 			long now = System.currentTimeMillis();
 			monitor.set("monitor", configure.get("instance"), now);
-			setLong("Server", "uptime_in_seconds", map);
-			setString("Server", "redis_version", map);
-			setString("Replication", "role", map);
+			setLong("Server", "uptime_in_seconds", nextInfo);
+			setString("Server", "redis_version", nextInfo);
+			setString("Replication", "role", nextInfo);
 			
 			// Clients
-			setLong("Clients", "connected_clients", map);
-			setLong("Clients", "client_recent_max_input_buffer", map);
-			setLong("Clients", "client_recent_max_output_buffer", map);
-			setLong("Clients", "blocked_clients", map);
-			setLong("Clients", "tracking_clients", map); // ?
+			setLong("Clients", "connected_clients", nextInfo);
+			setLong("Clients", "client_recent_max_input_buffer", nextInfo);
+			setLong("Clients", "client_recent_max_output_buffer", nextInfo);
+			setLong("Clients", "blocked_clients", nextInfo);
+			setLong("Clients", "tracking_clients", nextInfo); // ?
 			
 			// Memory
-			setLong("Memory", "maxmemory", map);
-			setLong("Memory", "used_memory", map);
-			setLong("Memory", "used_memory_lua", map);
-			setLong("Memory", "total_system_memory", map); // ?
+			setLong("Memory", "maxmemory", nextInfo);
+			setLong("Memory", "used_memory", nextInfo);
+			setLong("Memory", "used_memory_lua", nextInfo);
+			setLong("Memory", "total_system_memory", nextInfo); // ?
 			
 			// Stats
-			setLong("Stats", "total_connections_received", map);
-			setLong("Stats", "total_commands_processed", map);
+			setLong("Stats", "total_connections_received", nextInfo);
+			setLong("Stats", "total_commands_processed", nextInfo);
 			
-			setLong("Stats", "total_reads_processed", map);
-			setLong("Stats", "total_writes_processed", map);
-			setLong("Stats", "total_error_replies", map);
+			setLong("Stats", "total_reads_processed", nextInfo);
+			setLong("Stats", "total_writes_processed", nextInfo);
+			setLong("Stats", "total_error_replies", nextInfo);
 			
-			setLong("Stats", "total_net_input_bytes", map);
-			setLong("Stats", "total_net_output_bytes", map);
-			setLong("Stats", "evicted_keys_per_sec", map);
-			setLong("Stats", "instantaneous_ops_per_sec", map);
-			setLong("Stats", "instantaneous_write_ops_per_sec", map);
-			setLong("Stats", "instantaneous_read_ops_per_sec", map);
-			setLong("Stats", "instantaneous_other_ops_per_sec", map);
-			setLong("Stats", "instantaneous_sync_write_ops_per_sec", map);
-			setDouble("Stats", "instantaneous_input_kbps", map);
-			setDouble("Stats", "instantaneous_output_kbps", map);
+			setLong("Stats", "total_net_input_bytes", nextInfo);
+			setLong("Stats", "total_net_output_bytes", nextInfo);
+			setLong("Stats", "evicted_keys_per_sec", nextInfo);
+			setLong("Stats", "instantaneous_ops_per_sec", nextInfo);
+			setLong("Stats", "instantaneous_write_ops_per_sec", nextInfo);
+			setLong("Stats", "instantaneous_read_ops_per_sec", nextInfo);
+			setLong("Stats", "instantaneous_other_ops_per_sec", nextInfo);
+			setLong("Stats", "instantaneous_sync_write_ops_per_sec", nextInfo);
+			setDouble("Stats", "instantaneous_input_kbps", nextInfo);
+			setDouble("Stats", "instantaneous_output_kbps", nextInfo);
 			
 			// CPU
-			setDouble("CPU", "used_cpu_sys", map);
-			setDouble("CPU", "used_cpu_user", map);
-			setDouble("CPU", "used_cpu_sys_children", map);
-			setDouble("CPU", "used_cpu_user_children", map);
-			monitorDB(map);
+			setDouble("CPU", "used_cpu_sys", nextInfo);
+			setDouble("CPU", "used_cpu_user", nextInfo);
+			setDouble("CPU", "used_cpu_sys_children", nextInfo);
+			setDouble("CPU", "used_cpu_user_children", nextInfo);
+			monitorDB(nextInfo);
 			
 			// diff
-			diffLong("Stats", "expired_keys", prev, map);
-			diffLong("Stats", "evicted_keys", prev, map);
-			diffLong("Stats", "total_connections_received", prev, map, "diff_");
-			diffLong("Stats", "total_commands_processed", prev, map, "diff_");
-			diffLong("Stats", "total_net_input_bytes", prev, map, "diff_");
-			diffLong("Stats", "total_net_output_bytes", prev, map, "diff_");
+			diffLong("Stats", "expired_keys", prevInfo, nextInfo);
+			diffLong("Stats", "evicted_keys", prevInfo, nextInfo);
+			diffLong("Stats", "total_connections_received", prevInfo, nextInfo, "diff_");
+			diffLong("Stats", "total_commands_processed", prevInfo, nextInfo, "diff_");
+			diffLong("Stats", "total_net_input_bytes", prevInfo, nextInfo, "diff_");
+			diffLong("Stats", "total_net_output_bytes", prevInfo, nextInfo, "diff_");
 			
-			diffLong("Stats", "total_reads_processed", prev, map, "diff_");
-			diffLong("Stats", "total_writes_processed", prev, map, "diff_");
-			diffLong("Stats", "total_error_replies", prev, map, "diff_");
+			diffLong("Stats", "total_reads_processed", prevInfo, nextInfo, "diff_");
+			diffLong("Stats", "total_writes_processed", prevInfo, nextInfo, "diff_");
+			diffLong("Stats", "total_error_replies", prevInfo, nextInfo, "diff_");
 			
-			prev = map;
-			delay(10, TimeUnit.SECONDS);
+			prevInfo = nextInfo;
+			
+			// slow latency
+			long len = jedis.slowlogLen();
+			List<Object> binaryLogs = jedis.slowlogGetBinary(128); // configurable size ?
+			List<Slowlog> nextLogs = Slowlog.from(binaryLogs);
+			long nextId = nextLogs.get(0).getId();
+			long prevId = prevLogs == null ? nextId : prevLogs.get(0).getId();
+			
+			monitor.set("total_slow_log", nextId);
+			monitor.set("diff_total_slow_log", nextId - prevId);
+			
+			int count = (int) Math.min(nextId - prevId, len);
+			long totalExecutionTime = 0L;
+			for (int i = 0; i < count; i++) {
+				List<Object> binaryLog = (List<Object>) binaryLogs.get(i);
+				List<byte[]> bargs = (List<byte[]>) binaryLog.get(3);
+				Slowlog slowlog = nextLogs.get(i);
+				totalExecutionTime += slowlog.getExecutionTime();
+				slowlog.getId();
+				slowlog.getArgs();
+				slowlog.getTimeStamp();
+				slowlog.getClientIpPort();
+				slowlog.getClientName();
+				String[] properties = new String[5];
+				properties[0] = String.valueOf(slowlog.getId());
+				properties[1] = quote(FORMATTER.format(ofEpochMilli(slowlog.getTimeStamp() * 1000).atZone(systemDefault())));
+				properties[2] = quote(bargs.stream().map(e -> quote(new String(codec.encode(e)))).collect(Collectors.joining(" ")));
+				properties[3] = Strings.isEmpty(slowlog.getClientName()) ? "" : quote(slowlog.getClientName());
+				properties[4] = slowlog.getClientIpPort() == null ? "" : quote(slowlog.getClientIpPort().toString());
+				monitor.set("slow_log", properties, slowlog.getExecutionTime());
+			}
+			
+			if (count > 0) {
+				monitor.set("slow_log_latency", (totalExecutionTime / (count * 1d)));
+			} else {
+				monitor.set("slow_log_latency", 0d);
+			}
+			
+			prevLogs = nextLogs;
+			delay(15, TimeUnit.SECONDS);
 		} catch (JedisConnectionException e) {
 			System.err.println("failed to connect to [" + host + ":" + port + "]");
 			System.exit(-1);
 		}
+	}
+	
+	private String quote(String name) {
+		return new StringBuilder().append('"').append(name).append('"').toString();
 	}
 	
 	private void setLong(String key, String field, Map<String, Map<String, String>> map) {
