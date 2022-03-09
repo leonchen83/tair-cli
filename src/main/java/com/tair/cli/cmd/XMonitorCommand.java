@@ -202,10 +202,10 @@ public class XMonitorCommand implements Runnable, Closeable {
 				slowlog.getClientName();
 				String[] properties = new String[5];
 				properties[0] = String.valueOf(slowlog.getId());
-				properties[1] = quote(FORMATTER.format(ofEpochMilli(slowlog.getTimeStamp() * 1000).atZone(systemDefault())));
-				properties[2] = quote(bargs.stream().map(e -> quote(new String(codec.encode(e)))).collect(Collectors.joining(" ")));
-				properties[3] = Strings.isEmpty(slowlog.getClientName()) ? "" : quote(slowlog.getClientName());
-				properties[4] = slowlog.getClientIpPort() == null ? "" : quote(slowlog.getClientIpPort().toString());
+				properties[1] = FORMATTER.format(ofEpochMilli(slowlog.getTimeStamp() * 1000).atZone(systemDefault()));
+				properties[2] = bargs.stream().map(e -> quote(new String(codec.encode(e)))).collect(Collectors.joining(" "));
+				properties[3] = Strings.isEmpty(slowlog.getClientName()) ? "" : slowlog.getClientName();
+				properties[4] = slowlog.getClientIpPort() == null ? "" : slowlog.getClientIpPort().toString();
 				monitor.set("slow_log", properties, slowlog.getExecutionTime());
 			}
 			

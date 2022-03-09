@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1646808483399,
+  "iteration": 1646812713878,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -2913,12 +2913,10 @@
             },
             "properties": [
               {
-                "id": "custom.minWidth",
-                "value": 400
+                "id": "custom.minWidth"
               },
               {
-                "id": "custom.width",
-                "value": 400
+                "id": "custom.width"
               }
             ]
           },
@@ -2933,20 +2931,16 @@
                 "value": "µs"
               },
               {
-                "id": "custom.minWidth"
+                "id": "custom.minWidth",
+                "value": 200
               },
               {
-                "id": "custom.width"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "continuous-BlPu"
-                }
+                "id": "custom.width",
+                "value": 200
               },
               {
                 "id": "custom.displayMode",
-                "value": "lcd-gauge"
+                "value": "auto"
               },
               {
                 "id": "thresholds",
@@ -2993,7 +2987,7 @@
           "measurement": "slow_log",
           "orderByTime": "DESC",
           "policy": "30days",
-          "query": "SELECT \"property0\" AS \"id\", \"property1\" AS \"timestamp\", \"property2\" AS \"command\", \"property3\" AS \"client\", \"property4\" AS \"ip address\", \"value\" AS \"execution time\" FROM \"30days\".\"slow_log\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter ORDER BY time DESC LIMIT 128",
+          "query": "SELECT \"property0\" AS \"id\", \"property1\" AS \"timestamp\", \"property3\" AS \"client\", \"property4\" AS \"ip address\", \"value\" AS \"execution time\", \"property2\" AS \"command\" FROM \"30days\".\"slow_log\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter ORDER BY time DESC LIMIT 128",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
