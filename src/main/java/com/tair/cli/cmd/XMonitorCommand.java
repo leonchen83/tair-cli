@@ -182,8 +182,8 @@ public class XMonitorCommand implements Runnable, Closeable {
 			long len = jedis.slowlogLen();
 			List<Object> binaryLogs = jedis.slowlogGetBinary(128); // configurable size ?
 			List<Slowlog> nextLogs = Slowlog.from(binaryLogs);
-			long nextId = nextLogs.get(0).getId();
-			long prevId = prevLogs == null ? nextId : prevLogs.get(0).getId();
+			long nextId = isEmpty(nextLogs) ? 0 : nextLogs.get(0).getId();
+			long prevId = isEmpty(prevLogs) ? nextId : prevLogs.get(0).getId();
 			
 			monitor.set("total_slow_log", nextId);
 			monitor.set("diff_total_slow_log", nextId - prevId);
@@ -221,6 +221,10 @@ public class XMonitorCommand implements Runnable, Closeable {
 			System.err.println("failed to connect to [" + host + ":" + port + "]");
 			System.exit(-1);
 		}
+	}
+	
+	private static <T> boolean isEmpty(List<T> prevLogs) {
+		return prevLogs == null || prevLogs.isEmpty();
 	}
 	
 	private String quote(String name) {
