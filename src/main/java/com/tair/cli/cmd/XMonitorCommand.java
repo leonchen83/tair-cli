@@ -21,7 +21,6 @@ import static java.time.ZoneId.systemDefault;
 
 import java.io.Closeable;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +48,7 @@ import redis.clients.jedis.resps.Slowlog;
 /**
  * @author Baoyi Chen
  */
+@SuppressWarnings("unchecked")
 public class XMonitorCommand implements Runnable, Closeable {
 	
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
