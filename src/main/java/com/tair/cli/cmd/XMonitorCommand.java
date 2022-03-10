@@ -146,6 +146,8 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setLong("Memory", "used_memory", nextInfo);
 			setLong("Memory", "used_memory_lua", nextInfo);
 			setLong("Memory", "total_system_memory", nextInfo); // ?
+			setDouble("Memory", "mem_fragmentation_ratio", nextInfo);
+			setLong("Memory", "mem_fragmentation_bytes", nextInfo);
 			
 			// Stats
 			setLong("Stats", "total_connections_received", nextInfo);
@@ -154,6 +156,10 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setLong("Stats", "total_reads_processed", nextInfo);
 			setLong("Stats", "total_writes_processed", nextInfo);
 			setLong("Stats", "total_error_replies", nextInfo);
+			
+			long hits = getLong("Stats", "keyspace_hits", nextInfo);
+			long misses = getLong("Stats", "keyspace_misses", nextInfo);
+			monitor.set("keyspace_hit_rate", hits * 1d / (hits + misses));
 			
 			setLong("Stats", "total_net_input_bytes", nextInfo);
 			setLong("Stats", "total_net_output_bytes", nextInfo);
