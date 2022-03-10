@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1646812713878,
+  "iteration": 1646886012134,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1370,6 +1370,54 @@
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "C",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "instance",
+              "operator": "=~",
+              "value": "/^$instance$/"
+            }
+          ]
+        },
+        {
+          "alias": "max",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "P3C6603E967DC8568"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "hide": false,
+          "measurement": "maxclients",
+          "orderByTime": "ASC",
+          "policy": "30days",
+          "refId": "D",
           "resultFormat": "time_series",
           "select": [
             [

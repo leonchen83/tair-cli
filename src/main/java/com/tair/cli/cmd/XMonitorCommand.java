@@ -117,6 +117,11 @@ public class XMonitorCommand implements Runnable, Closeable {
 	public void run() {
 		try {
 			String info = retry(e -> e.info());
+			List<String> maxclients = retry(e -> e.configGet("maxclients"));
+			long len = retry(e -> e.slowlogLen());
+			List<Object> binaryLogs = retry(e -> e.slowlogGetBinary(128));
+			
+			
 			Map<String, Map<String, String>> nextInfo = convert(info);
 			
 			// Server
@@ -132,6 +137,9 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setLong("Clients", "client_recent_max_output_buffer", nextInfo);
 			setLong("Clients", "blocked_clients", nextInfo);
 			setLong("Clients", "tracking_clients", nextInfo); // ?
+			if (!isEmpty(maxclients) && maxclients.size() == 2) {
+				monitor.set("maxclients", Long.parseLong(maxclients.get(1)));
+			}
 			
 			// Memory
 			setLong("Memory", "maxmemory", nextInfo);
@@ -180,8 +188,6 @@ public class XMonitorCommand implements Runnable, Closeable {
 			prevInfo = nextInfo;
 			
 			// slow latency
-			long len = retry(e -> e.slowlogLen());
-			List<Object> binaryLogs = retry(e -> e.slowlogGetBinary(128)); // configurable size ?
 			List<Slowlog> nextLogs = Slowlog.from(binaryLogs);
 			long nextId = isEmpty(nextLogs) ? 0 : nextLogs.get(0).getId();
 			long prevId = isEmpty(prevLogs) ? nextId : prevLogs.get(0).getId();
