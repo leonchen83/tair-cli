@@ -16,34 +16,24 @@
 
 package com.tair.cli.cmd;
 
-import static java.time.Instant.ofEpochMilli;
-import static java.time.ZoneId.systemDefault;
-
 import java.io.Closeable;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.moilioncircle.redis.replicator.Configuration;
 import com.moilioncircle.redis.replicator.RedisURI;
-import com.moilioncircle.redis.replicator.cmd.RedisCodec;
 import com.tair.cli.conf.Configure;
 import com.tair.cli.monitor.Monitor;
 import com.tair.cli.monitor.MonitorFactory;
 import com.tair.cli.monitor.MonitorManager;
-import com.tair.cli.util.Strings;
+import com.tair.cli.rinfo.XRedisInfo;
+import com.tair.cli.rinfo.XSlowLog;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
-import redis.clients.jedis.resps.Slowlog;
 
 /**
  * @author Baoyi Chen
@@ -51,8 +41,6 @@ import redis.clients.jedis.resps.Slowlog;
 @SuppressWarnings("unchecked")
 public class XMonitorCommand implements Runnable, Closeable {
 	
-	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-	private static Logger logger = LoggerFactory.getLogger(XMonitorCommand.class);
 	private static final Monitor monitor = MonitorFactory.getMonitor("tair_monitor");
 	
 	private final String host;
@@ -61,11 +49,8 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private final int retries = 5;
 	private MonitorManager manager;
 	protected volatile Jedis jedis;
+	protected XRedisInfo prev = new XRedisInfo();
 	protected final DefaultJedisClientConfig config;
-	protected RedisCodec codec = new RedisCodec();
-	
-	protected List<Slowlog> prevLogs;
-	protected Map<String, Map<String, String>> prevInfo;
 	
 	public XMonitorCommand(RedisURI uri, Configure configure) {
 		this.configure = configure;
@@ -120,242 +105,133 @@ public class XMonitorCommand implements Runnable, Closeable {
 			List<String> maxclients = retry(e -> e.configGet("maxclients"));
 			long len = retry(e -> e.slowlogLen());
 			List<Object> binaryLogs = retry(e -> e.slowlogGetBinary(128));
-			
-			
-			Map<String, Map<String, String>> nextInfo = convert(info);
+			XRedisInfo next = XRedisInfo.valueOf(info, maxclients, len, binaryLogs);
+			next = XRedisInfo.diff(prev, next);
 			
 			// Server
 			long now = System.currentTimeMillis();
 			monitor.set("monitor", configure.get("instance"), now);
-			setLong("Server", "uptime_in_seconds", nextInfo);
-			setString("Server", "redis_version", nextInfo);
-			setString("Replication", "role", nextInfo);
+			setLong("uptime_in_seconds", next.getUptimeInSeconds());
+			setString("redis_version", next.getRedisVersion());
+			setString("role", next.getRole());
 			
 			// Clients
-			setLong("Clients", "connected_clients", nextInfo);
-			setLong("Clients", "client_recent_max_input_buffer", nextInfo);
-			setLong("Clients", "client_recent_max_output_buffer", nextInfo);
-			setLong("Clients", "blocked_clients", nextInfo);
-			setLong("Clients", "tracking_clients", nextInfo); // ?
-			if (!isEmpty(maxclients) && maxclients.size() == 2) {
-				monitor.set("maxclients", Long.parseLong(maxclients.get(1)));
-			}
+			setLong("connected_clients", next.getConnectedClients());
+			setLong("blocked_clients", next.getBlockedClients());
+			setLong("tracking_clients", next.getTrackingClients());
+			setLong("maxclients", next.getMaxclients());
 			
 			// Memory
-			setLong("Memory", "maxmemory", nextInfo);
-			setLong("Memory", "used_memory", nextInfo);
-			setLong("Memory", "used_memory_rss", nextInfo);
-			setLong("Memory", "used_memory_peak", nextInfo);
-			setLong("Memory", "used_memory_dataset", nextInfo);
-			setLong("Memory", "used_memory_lua", nextInfo);
-			setLong("Memory", "used_memory_functions", nextInfo);
-			setLong("Memory", "used_memory_scripts", nextInfo);
-			setLong("Memory", "total_system_memory", nextInfo); // ?
-			setDouble("Memory", "mem_fragmentation_ratio", nextInfo);
-			setLong("Memory", "mem_fragmentation_bytes", nextInfo);
+			setLong("maxmemory", next.getMaxmemory());
+			setLong("used_memory", next.getUsedMemory());
+			setLong("used_memory_rss", next.getUsedMemoryRss());
+			setLong("used_memory_peak", next.getUsedMemoryPeak());
+			setLong("used_memory_dataset", next.getUsedMemoryDataset());
+			setLong("used_memory_lua", next.getUsedMemoryLua());
+			setLong("used_memory_functions", next.getUsedMemoryFunctions());
+			setLong("used_memory_scripts", next.getUsedMemoryScripts());
+			setLong("total_system_memory", next.getTotalSystemMemory()); // ?
+			setDouble("mem_fragmentation_ratio", next.getMemFragmentationRatio());
+			setLong("mem_fragmentation_bytes", next.getMemFragmentationBytes());
 
 			// Stats
-			setLong("Stats", "total_connections_received", nextInfo);
-			setLong("Stats", "total_commands_processed", nextInfo);
+			setLong("total_connections_received", next.getTotalConnectionsReceived());
+			setLong("total_commands_processed", next.getTotalCommandsProcessed());
 			
-			setLong("Stats", "total_reads_processed", nextInfo);
-			setLong("Stats", "total_writes_processed", nextInfo);
-			setLong("Stats", "total_error_replies", nextInfo);
+			setLong("total_reads_processed", next.getTotalReadsProcessed());
+			setLong("total_writes_processed", next.getTotalWritesProcessed());
+			setLong("total_error_replies", next.getTotalErrorReplies());
 			
-			long hits = getLong("Stats", "keyspace_hits", nextInfo);
-			long misses = getLong("Stats", "keyspace_misses", nextInfo);
-			monitor.set("keyspace_hit_rate", hits * 1d / (hits + misses));
-			
-			setLong("Stats", "total_net_input_bytes", nextInfo);
-			setLong("Stats", "total_net_output_bytes", nextInfo);
-			setDouble("Stats", "evicted_keys_per_sec", nextInfo);
-			setDouble("Stats", "instantaneous_ops_per_sec", nextInfo);
-			setDouble("Stats", "instantaneous_write_ops_per_sec", nextInfo);
-			setDouble("Stats", "instantaneous_read_ops_per_sec", nextInfo);
-			setDouble("Stats", "instantaneous_other_ops_per_sec", nextInfo);
-			setDouble("Stats", "instantaneous_sync_write_ops_per_sec", nextInfo);
-			setDouble("Stats", "instantaneous_input_kbps", nextInfo);
-			setDouble("Stats", "instantaneous_output_kbps", nextInfo);
-			
-			// CPU
-			setDouble("CPU", "used_cpu_sys", nextInfo);
-			setDouble("CPU", "used_cpu_user", nextInfo);
-			setDouble("CPU", "used_cpu_sys_children", nextInfo);
-			setDouble("CPU", "used_cpu_user_children", nextInfo);
-			monitorDB(nextInfo);
-			
-			// diff
-			diffLong("Stats", "expired_keys", prevInfo, nextInfo);
-			diffLong("Stats", "evicted_keys", prevInfo, nextInfo);
-			diffLong("Stats", "total_connections_received", prevInfo, nextInfo, "diff_");
-			diffLong("Stats", "total_commands_processed", prevInfo, nextInfo, "diff_");
-			diffLong("Stats", "total_net_input_bytes", prevInfo, nextInfo, "diff_");
-			diffLong("Stats", "total_net_output_bytes", prevInfo, nextInfo, "diff_");
-			
-			diffLong("Stats", "total_reads_processed", prevInfo, nextInfo, "diff_");
-			diffLong("Stats", "total_writes_processed", prevInfo, nextInfo, "diff_");
-			diffLong("Stats", "total_error_replies", prevInfo, nextInfo, "diff_");
-			
-			prevInfo = nextInfo;
-			
-			// slow latency
-			List<Slowlog> nextLogs = Slowlog.from(binaryLogs);
-			long nextId = isEmpty(nextLogs) ? 0 : nextLogs.get(0).getId();
-			long prevId = isEmpty(prevLogs) ? nextId : prevLogs.get(0).getId();
-			
-			monitor.set("total_slow_log", nextId);
-			monitor.set("diff_total_slow_log", nextId - prevId);
-			
-			int count = (int) Math.min(nextId - prevId, len);
-			long totalExecutionTime = 0L;
-			for (int i = 0; i < count; i++) {
-				List<Object> binaryLog = (List<Object>) binaryLogs.get(i);
-				List<byte[]> bargs = (List<byte[]>) binaryLog.get(3);
-				Slowlog slowlog = nextLogs.get(i);
-				totalExecutionTime += slowlog.getExecutionTime();
-				slowlog.getId();
-				slowlog.getArgs();
-				slowlog.getTimeStamp();
-				slowlog.getClientIpPort();
-				slowlog.getClientName();
-				String[] properties = new String[5];
-				properties[0] = String.valueOf(slowlog.getId());
-				properties[1] = FORMATTER.format(ofEpochMilli(slowlog.getTimeStamp() * 1000).atZone(systemDefault()));
-				properties[2] = bargs.stream().map(e -> quote(new String(codec.encode(e)))).collect(Collectors.joining(" "));
-				properties[3] = Strings.isEmpty(slowlog.getClientName()) ? "" : slowlog.getClientName();
-				properties[4] = slowlog.getClientIpPort() == null ? "" : slowlog.getClientIpPort().toString();
-				monitor.set("slow_log", properties, slowlog.getExecutionTime());
+			Long hits = next.getKeyspaceHits();
+			Long misses = next.getKeyspaceMisses();
+			if (hits != null && misses != null) {
+				monitor.set("keyspace_hit_rate", hits * 1d / (hits + misses));
 			}
 			
-			if (count > 0) {
-				monitor.set("slow_log_latency", (totalExecutionTime / (count * 1d)));
+			setLong("total_net_input_bytes", next.getTotalNetInputBytes());
+			setLong("total_net_output_bytes", next.getTotalNetOutputBytes());
+			setDouble("evicted_keys_per_sec", next.getEvictedKeysPerSec());
+			setDouble("instantaneous_ops_per_sec", next.getInstantaneousOpsPerSec());
+			setDouble("instantaneous_write_ops_per_sec", next.getInstantaneousWriteOpsPerSec());
+			setDouble("instantaneous_read_ops_per_sec", next.getInstantaneousReadOpsPerSec());
+			setDouble("instantaneous_other_ops_per_sec", next.getInstantaneousOtherOpsPerSec());
+			setDouble("instantaneous_sync_write_ops_per_sec", next.getInstantaneousSyncWriteOpsPerSec());
+			setDouble("instantaneous_input_kbps", next.getInstantaneousInputKbps());
+			setDouble("instantaneous_output_kbps", next.getInstantaneousOutputKbps());
+			
+			// CPU
+			setDouble("used_cpu_sys", next.getUsedCpuSys());
+			setDouble("used_cpu_user", next.getUsedCpuUser());
+			setDouble("used_cpu_sys_children", next.getUsedCpuSysChildren());
+			setDouble("used_cpu_user_children", next.getUsedCpuUserChildren());
+			
+			for (Map.Entry<String, Long> entry : next.getDbInfo().entrySet()) {
+				monitor.set("dbnum", entry.getKey(), entry.getValue());
+			}
+			for (Map.Entry<String, Long> entry : next.getDbExpireInfo().entrySet()) {
+				monitor.set("dbexp", entry.getKey(), entry.getValue());
+			}
+			monitor.set("total_dbnum", next.getTotalDBCount());
+			monitor.set("total_dbexp", next.getTotalExpireCount());
+			
+			// diff
+			setLong("expired_keys", next.getDiffExpiredKeys());
+			setLong("evicted_keys", next.getDiffEvictedKeys());
+			setLong("diff_total_connections_received", next.getDiffTotalConnectionsReceived());
+			setLong("diff_total_commands_processed", next.getDiffTotalCommandsProcessed());
+			setLong("diff_total_net_input_bytes", next.getDiffTotalNetInputBytes());
+			setLong("diff_total_net_output_bytes", next.getDiffTotalNetOutputBytes());
+			setLong("diff_total_reads_processed", next.getDiffTotalReadsProcessed());
+			setLong("diff_total_writes_processed", next.getDiffTotalWritesProcessed());
+			setLong("diff_total_error_replies", next.getDiffTotalErrorReplies());
+			
+			//
+			setLong("total_slow_log", next.getTotalSlowLog());
+			setLong("diff_total_slow_log", next.getDiffTotalSlowLog());
+			
+			List<XSlowLog> slowLogs = next.getDiffSlowLogs();
+			for (XSlowLog slowLog : slowLogs) {
+				String[] properties = new String[5];
+				properties[0] = String.valueOf(slowLog.getId());
+				properties[1] = slowLog.getTimestamp();
+				properties[2] = slowLog.getCommand();
+				properties[3] = slowLog.getClientName();
+				properties[4] = slowLog.getHostAndPort() == null ? "" : slowLog.getHostAndPort().toString();
+				monitor.set("slow_log", properties, slowLog.getExecutionTime());
+			}
+			
+			if (next.getDiffTotalSlowLog() > 0) {
+				monitor.set("slow_log_latency", (next.getDiffTotalSlowLogExecutionTime() / (next.getDiffTotalSlowLog() * 1d)));
 			} else {
 				monitor.set("slow_log_latency", 0d);
 			}
 			
-			prevLogs = nextLogs;
+			prev = next;
 			delay(15, TimeUnit.SECONDS);
 		} catch (JedisConnectionException e) {
 			System.err.println("failed to connect to [" + host + ":" + port + "]");
 			System.exit(-1);
+		} catch (Throwable e) {
+			e.printStackTrace();
 		}
 	}
 	
-	private static <T> boolean isEmpty(List<T> prevLogs) {
-		return prevLogs == null || prevLogs.isEmpty();
-	}
-	
-	private String quote(String name) {
-		return new StringBuilder().append('"').append(name).append('"').toString();
-	}
-	
-	private void setLong(String key, String field, Map<String, Map<String, String>> map) {
-		Long value = getLong(key, field, map);
+	private void setLong(String field, Long value) {
 		if (value != null) {
 			monitor.set(field, value);
 		}
 	}
 	
-	private void setDouble(String key, String field, Map<String, Map<String, String>> map) {
-		Double value = getDouble(key, field, map);
+	private void setDouble(String field, Double value) {
 		if (value != null) {
 			monitor.set(field, value);
 		}
 	}
 	
-	private void setString(String key, String field, Map<String, Map<String, String>> map) {
-		String value = getString(key, field, map);
+	private void setString(String field, String value) {
 		if (value != null) {
 			monitor.set(field, value);
 		}
-	}
-	
-	private String getString(String key, String field, Map<String, Map<String, String>> map) {
-		if (map == null) return null;
-		if (map.containsKey(key) && map.get(key).containsKey(field)) {
-			return map.get(key).get(field);
-		}
-		return null;
-	}
-	
-	private Double getDouble(String key, String field, Map<String, Map<String, String>> map) {
-		if (map == null) return null;
-		if (map.containsKey(key) && map.get(key).containsKey(field)) {
-			String value = map.get(key).get(field);
-			try {
-				return Double.valueOf(value);
-			} catch (NumberFormatException e) {
-				logger.error("failed to monitor double attribute [{}]", field);
-			}
-		}
-		return null;
-	}
-	
-	private Long getLong(String key, String field, Map<String, Map<String, String>> map) {
-		if (map == null) return null;
-		if (map.containsKey(key) && map.get(key).containsKey(field)) {
-			String value = map.get(key).get(field);
-			try {
-				return Long.valueOf(value);
-			} catch (NumberFormatException e) {
-				logger.error("failed to monitor double attribute [{}]", field);
-			}
-		}
-		return null;
-	}
-	
-	private void diffLong(String key, String field, Map<String, Map<String, String>> prev, Map<String, Map<String, String>> next) {
-		diffLong(key, field, prev, next, "");
-	}
-	
-	private void diffLong(String key, String field, Map<String, Map<String, String>> prev, Map<String, Map<String, String>> next, String prefix) {
-		Long pv = getLong(key, field, prev);
-		Long nv = getLong(key, field, next);
-		if (pv != null && nv != null) {
-			monitor.set(prefix + field, nv - pv);
-		}
-	}
-	
-	private void monitorDB(Map<String, Map<String, String>> map) {
-		try {
-			Map<String, String> value = map.get("Keyspace");
-			long totalCount = 0L;
-			long totalExpire = 0L;
-			for (Map.Entry<String, String> entry : value.entrySet()) {
-				String key = entry.getKey();
-				String[] ary = entry.getValue().split(",");
-				long dbsize = Long.parseLong(ary[0].split("=")[1]);
-				long expires = Long.parseLong(ary[1].split("=")[1]);
-				monitor.set("dbnum", key, dbsize);
-				monitor.set("dbexp", key, expires);
-				totalCount += dbsize;
-				totalExpire += expires;
-			}
-			monitor.set("total_dbnum", totalCount);
-			monitor.set("total_dbexp", totalExpire);
-		} catch (NumberFormatException e) {
-			logger.error("failed to monitor db info");
-		}
-	}
-	
-	private Map<String, Map<String, String>> convert(String info) {
-		Map<String, Map<String, String>> map = new HashMap<>(16);
-		String[] lines = info.split("\n");
-		Map<String, String> value = null;
-		for (String line : lines) {
-			line = line == null ? "" : line.trim();
-			if (line.startsWith("#")) {
-				String key = line.substring(1).trim();
-				value = new HashMap<>(128);
-				map.put(key, value);
-			} else if(line.length() != 0) {
-				String[] ary = line.split(":");
-				if (ary.length == 2) {
-					if (value != null) value.put(ary[0], ary[1]);
-				}
-			}
-		}
-		return map;
 	}
 	
 	private void delay(long time, TimeUnit unit) {
