@@ -168,12 +168,12 @@ public class XMonitorCommand implements Runnable, Closeable {
 			
 			setLong("Stats", "total_net_input_bytes", nextInfo);
 			setLong("Stats", "total_net_output_bytes", nextInfo);
-			setLong("Stats", "evicted_keys_per_sec", nextInfo);
-			setLong("Stats", "instantaneous_ops_per_sec", nextInfo);
-			setLong("Stats", "instantaneous_write_ops_per_sec", nextInfo);
-			setLong("Stats", "instantaneous_read_ops_per_sec", nextInfo);
-			setLong("Stats", "instantaneous_other_ops_per_sec", nextInfo);
-			setLong("Stats", "instantaneous_sync_write_ops_per_sec", nextInfo);
+			setDouble("Stats", "evicted_keys_per_sec", nextInfo);
+			setDouble("Stats", "instantaneous_ops_per_sec", nextInfo);
+			setDouble("Stats", "instantaneous_write_ops_per_sec", nextInfo);
+			setDouble("Stats", "instantaneous_read_ops_per_sec", nextInfo);
+			setDouble("Stats", "instantaneous_other_ops_per_sec", nextInfo);
+			setDouble("Stats", "instantaneous_sync_write_ops_per_sec", nextInfo);
 			setDouble("Stats", "instantaneous_input_kbps", nextInfo);
 			setDouble("Stats", "instantaneous_output_kbps", nextInfo);
 			
