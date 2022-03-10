@@ -144,11 +144,16 @@ public class XMonitorCommand implements Runnable, Closeable {
 			// Memory
 			setLong("Memory", "maxmemory", nextInfo);
 			setLong("Memory", "used_memory", nextInfo);
+			setLong("Memory", "used_memory_rss", nextInfo);
+			setLong("Memory", "used_memory_peak", nextInfo);
+			setLong("Memory", "used_memory_dataset", nextInfo);
 			setLong("Memory", "used_memory_lua", nextInfo);
+			setLong("Memory", "used_memory_functions", nextInfo);
+			setLong("Memory", "used_memory_scripts", nextInfo);
 			setLong("Memory", "total_system_memory", nextInfo); // ?
 			setDouble("Memory", "mem_fragmentation_ratio", nextInfo);
 			setLong("Memory", "mem_fragmentation_bytes", nextInfo);
-			
+
 			// Stats
 			setLong("Stats", "total_connections_received", nextInfo);
 			setLong("Stats", "total_commands_processed", nextInfo);
