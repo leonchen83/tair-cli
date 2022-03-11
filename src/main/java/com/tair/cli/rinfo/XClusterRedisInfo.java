@@ -47,6 +47,14 @@ public class XClusterRedisInfo {
 	private Map<String, XStandaloneRedisInfo> masters = new HashMap<>();
 	private Map<String, XStandaloneRedisInfo> slaves = new HashMap<>();
 	
+	public XClusterInfo getClusterInfo() {
+		return clusterInfo;
+	}
+	
+	public void setClusterInfo(XClusterInfo clusterInfo) {
+		this.clusterInfo = clusterInfo;
+	}
+	
 	public List<XClusterInfo> getClusterInfos() {
 		return clusterInfos;
 	}
