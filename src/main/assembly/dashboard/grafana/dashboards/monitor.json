@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1646983870915,
+  "iteration": 1646984353760,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -882,7 +882,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "total_dbnum",
+          "measurement": "dbnum",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "B",
@@ -897,7 +897,7 @@
               },
               {
                 "params": [],
-                "type": "last"
+                "type": "sum"
               }
             ]
           ],
@@ -906,6 +906,12 @@
               "key": "instance",
               "operator": "=~",
               "value": "/^$instance$/"
+            },
+            {
+              "condition": "AND",
+              "key": "property0",
+              "operator": "=~",
+              "value": "/^db.*/"
             }
           ]
         }
@@ -1056,7 +1062,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "total_dbexp",
+          "measurement": "dbexp",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "B",
@@ -1071,7 +1077,7 @@
               },
               {
                 "params": [],
-                "type": "last"
+                "type": "sum"
               }
             ]
           ],
@@ -1080,6 +1086,12 @@
               "key": "instance",
               "operator": "=~",
               "value": "/^$instance$/"
+            },
+            {
+              "condition": "AND",
+              "key": "property0",
+              "operator": "=~",
+              "value": "/^db.*/"
             }
           ]
         },
@@ -4237,6 +4249,6 @@
   "timezone": "",
   "title": "monitor",
   "uid": "monitor",
-  "version": 10,
+  "version": 2,
   "weekStart": ""
 }
