@@ -82,18 +82,7 @@ public class XStandaloneRedisInfo {
 	private Map<String, Long> dbInfo = new HashMap<>();
 	private Map<String, Long> dbExpireInfo = new HashMap<>();
 	
-	private Long diffTotalDBCount;
-	private Long diffTotalExpireCount;
 	private Long diffTotalSlowLog;
-	private Long diffExpiredKeys;
-	private Long diffEvictedKeys;
-	private Long diffTotalConnectionsReceived;
-	private Long diffTotalCommandsProcessed;
-	private Long diffTotalNetInputBytes;
-	private Long diffTotalNetOutputBytes;
-	private Long diffTotalReadsProcessed;
-	private Long diffTotalWritesProcessed;
-	private Long diffTotalErrorReplies;
 	private Long diffTotalSlowLogExecutionTime;
 	private List<XSlowLog> diffSlowLogs = new ArrayList<>();
 	
@@ -457,108 +446,12 @@ public class XStandaloneRedisInfo {
 		this.slowLogs = slowLogs;
 	}
 	
-	public Long getDiffTotalDBCount() {
-		return diffTotalDBCount;
-	}
-	
-	public void setDiffTotalDBCount(Long diffTotalDBCount) {
-		this.diffTotalDBCount = diffTotalDBCount;
-	}
-	
-	public Long getDiffTotalExpireCount() {
-		return diffTotalExpireCount;
-	}
-	
-	public void setDiffTotalExpireCount(Long diffTotalExpireCount) {
-		this.diffTotalExpireCount = diffTotalExpireCount;
-	}
-	
 	public List<XSlowLog> getDiffSlowLogs() {
 		return diffSlowLogs;
 	}
 	
 	public void setDiffSlowLogs(List<XSlowLog> diffSlowLogs) {
 		this.diffSlowLogs = diffSlowLogs;
-	}
-	
-	public Long getDiffTotalSlowLog() {
-		return diffTotalSlowLog;
-	}
-	
-	public void setDiffTotalSlowLog(Long diffTotalSlowLog) {
-		this.diffTotalSlowLog = diffTotalSlowLog;
-	}
-	
-	public Long getDiffExpiredKeys() {
-		return diffExpiredKeys;
-	}
-	
-	public void setDiffExpiredKeys(Long diffExpiredKeys) {
-		this.diffExpiredKeys = diffExpiredKeys;
-	}
-	
-	public Long getDiffEvictedKeys() {
-		return diffEvictedKeys;
-	}
-	
-	public void setDiffEvictedKeys(Long diffEvictedKeys) {
-		this.diffEvictedKeys = diffEvictedKeys;
-	}
-	
-	public Long getDiffTotalConnectionsReceived() {
-		return diffTotalConnectionsReceived;
-	}
-	
-	public void setDiffTotalConnectionsReceived(Long diffTotalConnectionsReceived) {
-		this.diffTotalConnectionsReceived = diffTotalConnectionsReceived;
-	}
-	
-	public Long getDiffTotalCommandsProcessed() {
-		return diffTotalCommandsProcessed;
-	}
-	
-	public void setDiffTotalCommandsProcessed(Long diffTotalCommandsProcessed) {
-		this.diffTotalCommandsProcessed = diffTotalCommandsProcessed;
-	}
-	
-	public Long getDiffTotalNetInputBytes() {
-		return diffTotalNetInputBytes;
-	}
-	
-	public void setDiffTotalNetInputBytes(Long diffTotalNetInputBytes) {
-		this.diffTotalNetInputBytes = diffTotalNetInputBytes;
-	}
-	
-	public Long getDiffTotalNetOutputBytes() {
-		return diffTotalNetOutputBytes;
-	}
-	
-	public void setDiffTotalNetOutputBytes(Long diffTotalNetOutputBytes) {
-		this.diffTotalNetOutputBytes = diffTotalNetOutputBytes;
-	}
-	
-	public Long getDiffTotalReadsProcessed() {
-		return diffTotalReadsProcessed;
-	}
-	
-	public void setDiffTotalReadsProcessed(Long diffTotalReadsProcessed) {
-		this.diffTotalReadsProcessed = diffTotalReadsProcessed;
-	}
-	
-	public Long getDiffTotalWritesProcessed() {
-		return diffTotalWritesProcessed;
-	}
-	
-	public void setDiffTotalWritesProcessed(Long diffTotalWritesProcessed) {
-		this.diffTotalWritesProcessed = diffTotalWritesProcessed;
-	}
-	
-	public Long getDiffTotalErrorReplies() {
-		return diffTotalErrorReplies;
-	}
-	
-	public void setDiffTotalErrorReplies(Long diffTotalErrorReplies) {
-		this.diffTotalErrorReplies = diffTotalErrorReplies;
 	}
 	
 	public Map<String, Long> getDbInfo() {
@@ -599,6 +492,14 @@ public class XStandaloneRedisInfo {
 	
 	public void setDiffTotalSlowLogExecutionTime(Long diffTotalSlowLogExecutionTime) {
 		this.diffTotalSlowLogExecutionTime = diffTotalSlowLogExecutionTime;
+	}
+	
+	public Long getDiffTotalSlowLog() {
+		return diffTotalSlowLog;
+	}
+	
+	public void setDiffTotalSlowLog(Long diffTotalSlowLog) {
+		this.diffTotalSlowLog = diffTotalSlowLog;
 	}
 	
 	public static XStandaloneRedisInfo valueOf(String info, List<String> maxclients, long slowLogLen, List<Object> binaryLogs) {
@@ -657,39 +558,6 @@ public class XStandaloneRedisInfo {
 	}
 	
 	public static XStandaloneRedisInfo diff(XStandaloneRedisInfo prev, XStandaloneRedisInfo next) {
-		if (prev.evictedKeys != null && next.evictedKeys != null) {
-			next.diffEvictedKeys = next.evictedKeys - prev.evictedKeys;
-		}
-		if (prev.expiredKeys != null && next.expiredKeys != null) {
-			next.diffExpiredKeys = next.expiredKeys - prev.expiredKeys;
-		}
-		if (prev.totalDBCount != null && next.totalDBCount != null) {
-			next.diffTotalDBCount = next.totalDBCount - prev.totalDBCount;
-		}
-		if (prev.totalExpireCount != null && next.totalExpireCount != null) {
-			next.diffTotalExpireCount = next.totalExpireCount - prev.totalExpireCount;
-		}
-		if (prev.totalConnectionsReceived != null && next.totalConnectionsReceived != null) {
-			next.diffTotalConnectionsReceived = next.totalConnectionsReceived - prev.totalConnectionsReceived;
-		}
-		if (prev.totalNetInputBytes != null && next.totalNetInputBytes != null) {
-			next.diffTotalNetInputBytes = next.totalNetInputBytes - prev.totalNetInputBytes;
-		}
-		if (prev.totalNetOutputBytes != null && next.totalNetOutputBytes != null) {
-			next.diffTotalNetOutputBytes = next.totalNetOutputBytes - prev.totalNetOutputBytes;
-		}
-		if (prev.totalCommandsProcessed != null && next.totalCommandsProcessed != null) {
-			next.diffTotalCommandsProcessed = next.totalCommandsProcessed - prev.totalCommandsProcessed;
-		}
-		if (prev.totalReadsProcessed != null && next.totalReadsProcessed != null) {
-			next.diffTotalReadsProcessed = next.totalReadsProcessed - prev.totalReadsProcessed;
-		}
-		if (prev.totalWritesProcessed != null && next.totalWritesProcessed != null) {
-			next.diffTotalWritesProcessed = next.totalWritesProcessed - prev.totalWritesProcessed;
-		}
-		if (prev.totalErrorReplies != null && next.totalErrorReplies != null) {
-			next.diffTotalErrorReplies = next.totalErrorReplies - prev.totalErrorReplies;
-		}
 		diff(prev.slowLogs, next.slowLogs, next);
 		return next;
 	}
@@ -843,18 +711,7 @@ public class XStandaloneRedisInfo {
 				", slowLogs=" + slowLogs +
 				", dbInfo=" + dbInfo +
 				", dbExpireInfo=" + dbExpireInfo +
-				", diffTotalDBCount=" + diffTotalDBCount +
-				", diffTotalExpireCount=" + diffTotalExpireCount +
 				", diffTotalSlowLog=" + diffTotalSlowLog +
-				", diffExpiredKeys=" + diffExpiredKeys +
-				", diffEvictedKeys=" + diffEvictedKeys +
-				", diffTotalConnectionsReceived=" + diffTotalConnectionsReceived +
-				", diffTotalCommandsProcessed=" + diffTotalCommandsProcessed +
-				", diffTotalNetInputBytes=" + diffTotalNetInputBytes +
-				", diffTotalNetOutputBytes=" + diffTotalNetOutputBytes +
-				", diffTotalReadsProcessed=" + diffTotalReadsProcessed +
-				", diffTotalWritesProcessed=" + diffTotalWritesProcessed +
-				", diffTotalErrorReplies=" + diffTotalErrorReplies +
 				", diffTotalSlowLogExecutionTime=" + diffTotalSlowLogExecutionTime +
 				", diffSlowLogs=" + diffSlowLogs +
 				'}';

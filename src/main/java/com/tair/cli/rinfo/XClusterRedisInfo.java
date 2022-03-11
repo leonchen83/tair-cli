@@ -39,8 +39,6 @@ public class XClusterRedisInfo {
 	//
 	private Long clusterStatsMessagesSent;
 	private Long clusterStatsMessagesReceived;
-	private Long diffClusterStatsMessagesSent;
-	private Long diffClusterStatsMessagesReceived;
 	//
 	private List<XClusterInfo> clusterInfos = new ArrayList<>();
 	private List<XClusterNodes> clusterNodes = new ArrayList<>();
@@ -67,22 +65,6 @@ public class XClusterRedisInfo {
 	
 	public void setClusterStatsMessagesReceived(Long clusterStatsMessagesReceived) {
 		this.clusterStatsMessagesReceived = clusterStatsMessagesReceived;
-	}
-	
-	public Long getDiffClusterStatsMessagesSent() {
-		return diffClusterStatsMessagesSent;
-	}
-	
-	public void setDiffClusterStatsMessagesSent(Long diffClusterStatsMessagesSent) {
-		this.diffClusterStatsMessagesSent = diffClusterStatsMessagesSent;
-	}
-	
-	public Long getDiffClusterStatsMessagesReceived() {
-		return diffClusterStatsMessagesReceived;
-	}
-	
-	public void setDiffClusterStatsMessagesReceived(Long diffClusterStatsMessagesReceived) {
-		this.diffClusterStatsMessagesReceived = diffClusterStatsMessagesReceived;
 	}
 	
 	public List<XClusterInfo> getClusterInfos() {
@@ -174,13 +156,6 @@ public class XClusterRedisInfo {
 			calculateDiff(next.slave, entry.getValue());
 		}
 		
-		if (prev.clusterStatsMessagesSent != null && next.clusterStatsMessagesSent != null) {
-			next.diffClusterStatsMessagesSent = next.clusterStatsMessagesSent - prev.clusterStatsMessagesSent;
-		}
-		if (prev.clusterStatsMessagesReceived != null && next.clusterStatsMessagesReceived != null) {
-			next.diffClusterStatsMessagesReceived = next.clusterStatsMessagesReceived - prev.clusterStatsMessagesReceived;
-		}
-		
 		return next;
 	}
 	
@@ -196,28 +171,10 @@ public class XClusterRedisInfo {
 	}
 	
 	private static void calculateDiff(XStandaloneRedisInfo result, XStandaloneRedisInfo info) {
-		// diffTotalSlowLog
-		// diffExpiredKeys
-		// diffEvictedKeys
-		// diffTotalConnectionsReceived
-		// diffTotalCommandsProcessed
-		// diffTotalNetInputBytes
-		// diffTotalNetOutputBytes
-		// diffTotalReadsProcessed
-		// diffTotalWritesProcessed
-		// diffTotalErrorReplies
 		// diffTotalSlowLogExecutionTime
+		// diffTotalSlowLog
 		// diffSlowLogs
 		result.setDiffTotalSlowLog(add(result.getDiffTotalSlowLog(), info.getDiffTotalSlowLog()));
-		result.setDiffExpiredKeys(add(result.getDiffExpiredKeys(), info.getDiffExpiredKeys()));
-		result.setDiffEvictedKeys(add(result.getDiffEvictedKeys(), info.getDiffEvictedKeys()));
-		result.setDiffTotalConnectionsReceived(add(result.getDiffTotalConnectionsReceived(), info.getDiffTotalConnectionsReceived()));
-		result.setDiffTotalCommandsProcessed(add(result.getDiffTotalCommandsProcessed(), info.getDiffTotalCommandsProcessed()));
-		result.setDiffTotalNetInputBytes(add(result.getDiffTotalNetInputBytes(), info.getDiffTotalNetInputBytes()));
-		result.setDiffTotalNetOutputBytes(add(result.getDiffTotalNetOutputBytes(), info.getDiffTotalNetOutputBytes()));
-		result.setDiffTotalReadsProcessed(add(result.getDiffTotalReadsProcessed(), info.getDiffTotalReadsProcessed()));
-		result.setDiffTotalWritesProcessed(add(result.getDiffTotalWritesProcessed(), info.getDiffTotalWritesProcessed()));
-		result.setDiffTotalErrorReplies(add(result.getDiffTotalErrorReplies(), info.getDiffTotalErrorReplies()));
 		result.setDiffTotalSlowLogExecutionTime(add(result.getDiffTotalSlowLogExecutionTime(), info.getDiffTotalSlowLogExecutionTime()));
 		result.getDiffSlowLogs().addAll(info.getDiffSlowLogs());
 	}
@@ -322,8 +279,6 @@ public class XClusterRedisInfo {
 		return "XClusterRedisInfo{" +
 				"clusterStatsMessagesSent=" + clusterStatsMessagesSent +
 				", clusterStatsMessagesReceived=" + clusterStatsMessagesReceived +
-				", diffClusterStatsMessagesSent=" + diffClusterStatsMessagesSent +
-				", diffClusterStatsMessagesReceived=" + diffClusterStatsMessagesReceived +
 				", clusterInfos=" + clusterInfos +
 				", clusterNodes=" + clusterNodes +
 				", master=" + master +

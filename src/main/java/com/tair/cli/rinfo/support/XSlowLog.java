@@ -32,6 +32,7 @@ import redis.clients.jedis.util.SafeEncoder;
 /**
  * @author Baoyi Chen
  */
+@SuppressWarnings("unchecked")
 public class XSlowLog {
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 	private static RedisCodec codec = new RedisCodec();

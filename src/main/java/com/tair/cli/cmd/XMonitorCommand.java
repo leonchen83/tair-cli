@@ -179,19 +179,11 @@ public class XMonitorCommand implements Runnable, Closeable {
 			monitor.set("total_dbexp", next.getTotalExpireCount());
 			
 			// diff
-			setLong("expired_keys", next.getDiffExpiredKeys());
-			setLong("evicted_keys", next.getDiffEvictedKeys());
-			setLong("diff_total_connections_received", next.getDiffTotalConnectionsReceived());
-			setLong("diff_total_commands_processed", next.getDiffTotalCommandsProcessed());
-			setLong("diff_total_net_input_bytes", next.getDiffTotalNetInputBytes());
-			setLong("diff_total_net_output_bytes", next.getDiffTotalNetOutputBytes());
-			setLong("diff_total_reads_processed", next.getDiffTotalReadsProcessed());
-			setLong("diff_total_writes_processed", next.getDiffTotalWritesProcessed());
-			setLong("diff_total_error_replies", next.getDiffTotalErrorReplies());
+			setLong("expired_keys", next.getExpiredKeys());
+			setLong("evicted_keys", next.getEvictedKeys());
 			
 			// slow log
 			setLong("total_slow_log", next.getTotalSlowLog());
-			setLong("diff_total_slow_log", next.getDiffTotalSlowLog());
 			
 			List<XSlowLog> slowLogs = next.getDiffSlowLogs();
 			for (XSlowLog slowLog : slowLogs) {
