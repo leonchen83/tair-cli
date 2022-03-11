@@ -175,8 +175,6 @@ public class XMonitorCommand implements Runnable, Closeable {
 			for (Map.Entry<String, Long> entry : next.getDbExpireInfo().entrySet()) {
 				monitor.set("dbexp", entry.getKey(), entry.getValue());
 			}
-			monitor.set("total_dbnum", next.getTotalDBCount());
-			monitor.set("total_dbexp", next.getTotalExpireCount());
 			
 			// diff
 			setLong("expired_keys", next.getExpiredKeys());
