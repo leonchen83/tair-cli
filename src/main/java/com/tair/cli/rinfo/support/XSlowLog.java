@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.tair.cli.rinfo;
+package com.tair.cli.rinfo.support;
 
 import static java.time.Instant.ofEpochMilli;
 import static java.time.ZoneId.systemDefault;
@@ -117,5 +117,17 @@ public class XSlowLog {
 			logs.add(new XSlowLog(properties));
 		}
 		return logs;
+	}
+	
+	@Override
+	public String toString() {
+		return "XSlowLog{" +
+				"id=" + id +
+				", command='" + command + '\'' +
+				", timestamp='" + timestamp + '\'' +
+				", hostAndPort=" + hostAndPort +
+				", clientName='" + clientName + '\'' +
+				", executionTime=" + executionTime +
+				'}';
 	}
 }

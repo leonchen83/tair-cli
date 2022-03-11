@@ -22,7 +22,7 @@
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1646897759128,
+  "iteration": 1646982662190,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -1441,7 +1441,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "diff_total_connections_received",
+          "measurement": "total_connections_received",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "B",
@@ -1457,6 +1457,10 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [],
+                "type": "difference"
               }
             ]
           ],
@@ -2811,7 +2815,7 @@
               },
               {
                 "params": [
-                  "10s"
+                  "1s"
                 ],
                 "type": "derivative"
               }
@@ -3164,7 +3168,7 @@
               "type": "fill"
             }
           ],
-          "measurement": "diff_total_commands_processed",
+          "measurement": "total_commands_processed",
           "orderByTime": "ASC",
           "policy": "30days",
           "query": "SELECT derivative(last(\"value\"), 1s) FROM \"30days\".\"total_commands_processed\" WHERE (\"instance\" =~ /^$instance$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
@@ -3182,6 +3186,10 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [],
+                "type": "difference"
               }
             ]
           ],
@@ -3214,7 +3222,7 @@
             }
           ],
           "hide": false,
-          "measurement": "diff_total_reads_processed",
+          "measurement": "total_reads_processed",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "B",
@@ -3230,6 +3238,10 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [],
+                "type": "difference"
               }
             ]
           ],
@@ -3262,7 +3274,7 @@
             }
           ],
           "hide": false,
-          "measurement": "diff_total_writes_processed",
+          "measurement": "total_writes_processed",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "C",
@@ -3278,6 +3290,10 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [],
+                "type": "difference"
               }
             ]
           ],
@@ -3310,7 +3326,7 @@
             }
           ],
           "hide": false,
-          "measurement": "diff_total_error_replies",
+          "measurement": "total_error_replies",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "D",
@@ -3326,6 +3342,10 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [],
+                "type": "difference"
               }
             ]
           ],
@@ -3358,7 +3378,7 @@
             }
           ],
           "hide": false,
-          "measurement": "diff_total_slow_log",
+          "measurement": "total_slow_log",
           "orderByTime": "ASC",
           "policy": "30days",
           "refId": "E",
@@ -3374,6 +3394,10 @@
               {
                 "params": [],
                 "type": "last"
+              },
+              {
+                "params": [],
+                "type": "difference"
               }
             ]
           ],

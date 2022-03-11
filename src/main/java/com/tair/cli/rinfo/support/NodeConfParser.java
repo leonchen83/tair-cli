@@ -1,0 +1,219 @@
+/*
+ * Copyright 2018-2019 Baoyi Chen
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.tair.cli.rinfo.support;
+
+import static java.lang.Integer.parseInt;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import redis.clients.jedis.HostAndPort;
+
+/**
+ * @author Baoyi Chen
+ */
+public class NodeConfParser {
+
+    public static List<XClusterNodes> parse(String clusterNodes) {
+        String[] conf = clusterNodes.split("\n");
+        List<XClusterNodes> result = new ArrayList<>(conf.length); 
+        for (String line : conf) {
+            List<String> args = parseLine(line);
+            if (args == null || args.isEmpty()) continue;
+            if (args.get(0).equals("vars")) {
+                for (int i = 1; i < args.size(); i += 2) {
+                    switch (args.get(i)) {
+                        case "currentEpoch":
+                            // pass
+                            break;
+                        case "lastVoteEpoch":
+                            // pass
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            } else if (args.size() < 8) {
+                // pass
+            } else {
+                XClusterNodes node = new XClusterNodes();
+                result.add(node);
+                String name = args.get(0);
+                node.setName(name);
+                String hostAndPort = args.get(1);
+                int cIdx = hostAndPort.indexOf(":");
+                int aIdx = hostAndPort.indexOf("@");
+                String host = hostAndPort.substring(0, cIdx); // ip
+                int port = parseInt(hostAndPort.substring(cIdx + 1, aIdx == -1 ? hostAndPort.length() : aIdx));
+                node.setHostAndPort(new HostAndPort(host, port));
+                for (String role : args.get(2).split(",")) {
+                    switch (role) {
+                        case "fail":
+                        case "fail?":
+                        case "noflags":
+                        case "noaddr":
+                        case "handshake":
+                            node.setState(role);
+                            break;
+                        case "master":
+                            node.setMaster(true);
+                            break;
+                        case "slave":
+                            node.setMaster(false);
+                            break;
+                        case "myself":
+                            node.setMyself(true);
+                            break;
+                        default:
+                    }
+                }
+
+                if (!args.get(3).equals("-")) {
+                    args.get(3); // slave
+                    // pass
+                }
+
+                String pingTime = args.get(4);
+                node.setPingTime(Long.parseLong(pingTime));
+                String pongTime = args.get(5);
+                node.setPongTime(Long.parseLong(pongTime));
+                String configEpoch = args.get(6);
+                node.setConfigEpoch(Long.parseLong(configEpoch));
+                String connect = args.get(7);
+                node.setLink(connect);
+
+                for (int i = 8; i < args.size(); i++) {
+                    int st = 0, ed = 0;
+                    String arg = args.get(i);
+                    if (arg.startsWith("[")) {
+                        int idx = arg.indexOf("-");
+                        String slot = arg.substring(1, idx); // slot
+                        arg.substring(idx + 3, idx + 3 + 40); // migrate
+                        node.getMigratingSlots().add(Short.parseShort(slot));
+                    } else if (arg.contains("-")) {
+                        int idx = arg.indexOf("-");
+                        st = parseInt(arg.substring(0, idx));
+                        ed = parseInt(arg.substring(idx + 1));
+                    } else {
+                        st = ed = parseInt(arg);
+                    }
+                    for (; st <= ed; st++) {
+                        node.getSlots().add((short) st);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public static List<String> parseLine(String line) {
+        List<String> args = new ArrayList<>();
+        if (line.length() == 0 || line.equals("\n")) return args;
+        char[] ary = line.toCharArray();
+        StringBuilder s = new StringBuilder();
+        boolean dq = false, q = false;
+        for (int i = 0; i < ary.length; i++) {
+            char c = ary[i];
+            switch (c) {
+                case ' ':
+                    if (dq || q) s.append(' ');
+                    else if (s.length() > 0) {
+                        args.add(s.toString());
+                        s.setLength(0);
+                    }
+                    break;
+                case '"':
+                    if (!dq && !q) {
+                        dq = true;
+                    } else if (q) {
+                        s.append('"');
+                    } else {
+                        args.add(s.toString());
+                        s.setLength(0);
+                        dq = false;
+                        if (i + 1 < ary.length && ary[i + 1] != ' ')
+                            throw new UnsupportedOperationException("parse config error.");
+                    }
+                    break;
+                case '\'':
+                    if (!dq && !q) {
+                        q = true;
+                    } else if (dq) {
+                        s.append('\'');
+                    } else {
+                        args.add(s.toString());
+                        s.setLength(0);
+                        q = false;
+                        if (i + 1 < ary.length && ary[i + 1] != ' ')
+                            throw new UnsupportedOperationException("parse config error.");
+                    }
+                    break;
+                case '\\':
+                    if (!dq) s.append('\\');
+                    else {
+                        i++;
+                        if (i < ary.length) {
+                            switch (ary[i]) {
+                                case 'n':
+                                    s.append('\n');
+                                    break;
+                                case 'r':
+                                    s.append('\r');
+                                    break;
+                                case 't':
+                                    s.append('\t');
+                                    break;
+                                case 'b':
+                                    s.append('\b');
+                                    break;
+                                case 'f':
+                                    s.append('\f');
+                                    break;
+                                case 'a':
+                                    s.append((byte) 7);
+                                    break;
+                                case 'x':
+                                    if (i + 2 >= ary.length) s.append("\\x");
+                                    else {
+                                        char high = ary[++i];
+                                        char low = ary[++i];
+                                        try {
+                                            s.append(parseInt(new String(new char[]{high, low}), 16));
+                                        } catch (Exception e) {
+                                            s.append("\\x");
+                                            s.append(high);
+                                            s.append(low);
+                                        }
+                                    }
+                                    break;
+                                default:
+                                    s.append(ary[i]);
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    s.append(c);
+                    break;
+            }
+        }
+        if (dq || q) throw new UnsupportedOperationException("parse line[" + line + "] error.");
+        if (s.length() > 0) args.add(s.toString());
+        return args;
+    }
+}

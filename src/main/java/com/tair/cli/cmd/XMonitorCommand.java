@@ -16,6 +16,8 @@
 
 package com.tair.cli.cmd;
 
+import static com.tair.cli.rinfo.XStandaloneRedisInfo.EMPTY;
+
 import java.io.Closeable;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +30,8 @@ import com.tair.cli.conf.Configure;
 import com.tair.cli.monitor.Monitor;
 import com.tair.cli.monitor.MonitorFactory;
 import com.tair.cli.monitor.MonitorManager;
-import com.tair.cli.rinfo.XRedisInfo;
-import com.tair.cli.rinfo.XSlowLog;
+import com.tair.cli.rinfo.XStandaloneRedisInfo;
+import com.tair.cli.rinfo.support.XSlowLog;
 
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.Jedis;
@@ -49,7 +51,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 	private final int retries = 5;
 	private MonitorManager manager;
 	protected volatile Jedis jedis;
-	protected XRedisInfo prev = new XRedisInfo();
+	protected XStandaloneRedisInfo prev = EMPTY;
 	protected final DefaultJedisClientConfig config;
 	
 	public XMonitorCommand(RedisURI uri, Configure configure) {
@@ -105,23 +107,23 @@ public class XMonitorCommand implements Runnable, Closeable {
 			List<String> maxclients = retry(e -> e.configGet("maxclients"));
 			long len = retry(e -> e.slowlogLen());
 			List<Object> binaryLogs = retry(e -> e.slowlogGetBinary(128));
-			XRedisInfo next = XRedisInfo.valueOf(info, maxclients, len, binaryLogs);
-			next = XRedisInfo.diff(prev, next);
+			XStandaloneRedisInfo next = XStandaloneRedisInfo.valueOf(info, maxclients, len, binaryLogs);
+			next = XStandaloneRedisInfo.diff(prev, next);
 			
-			// Server
+			// server
 			long now = System.currentTimeMillis();
 			monitor.set("monitor", configure.get("instance"), now);
 			setLong("uptime_in_seconds", next.getUptimeInSeconds());
 			setString("redis_version", next.getRedisVersion());
 			setString("role", next.getRole());
 			
-			// Clients
+			// clients
 			setLong("connected_clients", next.getConnectedClients());
 			setLong("blocked_clients", next.getBlockedClients());
 			setLong("tracking_clients", next.getTrackingClients());
 			setLong("maxclients", next.getMaxclients());
 			
-			// Memory
+			// memory
 			setLong("maxmemory", next.getMaxmemory());
 			setLong("used_memory", next.getUsedMemory());
 			setLong("used_memory_rss", next.getUsedMemoryRss());
@@ -134,7 +136,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setDouble("mem_fragmentation_ratio", next.getMemFragmentationRatio());
 			setLong("mem_fragmentation_bytes", next.getMemFragmentationBytes());
 
-			// Stats
+			// command
 			setLong("total_connections_received", next.getTotalConnectionsReceived());
 			setLong("total_commands_processed", next.getTotalCommandsProcessed());
 			
@@ -148,6 +150,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 				monitor.set("keyspace_hit_rate", hits * 1d / (hits + misses));
 			}
 			
+			// ops
 			setLong("total_net_input_bytes", next.getTotalNetInputBytes());
 			setLong("total_net_output_bytes", next.getTotalNetOutputBytes());
 			setDouble("evicted_keys_per_sec", next.getEvictedKeysPerSec());
@@ -159,12 +162,13 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setDouble("instantaneous_input_kbps", next.getInstantaneousInputKbps());
 			setDouble("instantaneous_output_kbps", next.getInstantaneousOutputKbps());
 			
-			// CPU
+			// cpu
 			setDouble("used_cpu_sys", next.getUsedCpuSys());
 			setDouble("used_cpu_user", next.getUsedCpuUser());
 			setDouble("used_cpu_sys_children", next.getUsedCpuSysChildren());
 			setDouble("used_cpu_user_children", next.getUsedCpuUserChildren());
 			
+			// db
 			for (Map.Entry<String, Long> entry : next.getDbInfo().entrySet()) {
 				monitor.set("dbnum", entry.getKey(), entry.getValue());
 			}
@@ -185,7 +189,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 			setLong("diff_total_writes_processed", next.getDiffTotalWritesProcessed());
 			setLong("diff_total_error_replies", next.getDiffTotalErrorReplies());
 			
-			//
+			// slow log
 			setLong("total_slow_log", next.getTotalSlowLog());
 			setLong("diff_total_slow_log", next.getDiffTotalSlowLog());
 			

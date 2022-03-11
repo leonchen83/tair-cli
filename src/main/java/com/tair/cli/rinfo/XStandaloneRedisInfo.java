@@ -21,15 +21,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.tair.cli.rinfo.support.XSlowLog;
+
 import redis.clients.jedis.HostAndPort;
 
 /**
  * @author Baoyi Chen
  */
-public class XRedisInfo {
+public class XStandaloneRedisInfo {
+	
+	public static XStandaloneRedisInfo EMPTY = new XStandaloneRedisInfo();
+	
 	private HostAndPort hostAndPort;
 	private String role;
-	
 	private Long uptimeInSeconds;
 	private String redisVersion;
 	private Long connectedClients;
@@ -78,6 +82,8 @@ public class XRedisInfo {
 	private Map<String, Long> dbInfo = new HashMap<>();
 	private Map<String, Long> dbExpireInfo = new HashMap<>();
 	
+	private Long diffTotalDBCount;
+	private Long diffTotalExpireCount;
 	private Long diffTotalSlowLog;
 	private Long diffExpiredKeys;
 	private Long diffEvictedKeys;
@@ -91,20 +97,20 @@ public class XRedisInfo {
 	private Long diffTotalSlowLogExecutionTime;
 	private List<XSlowLog> diffSlowLogs = new ArrayList<>();
 	
-	public Long getSlowLogLen() {
-		return slowLogLen;
-	}
-	
-	public void setSlowLogLen(Long slowLogLen) {
-		this.slowLogLen = slowLogLen;
-	}
-	
 	public HostAndPort getHostAndPort() {
 		return hostAndPort;
 	}
 	
 	public void setHostAndPort(HostAndPort hostAndPort) {
 		this.hostAndPort = hostAndPort;
+	}
+	
+	public Long getSlowLogLen() {
+		return slowLogLen;
+	}
+	
+	public void setSlowLogLen(Long slowLogLen) {
+		this.slowLogLen = slowLogLen;
 	}
 	
 	public String getRole() {
@@ -451,6 +457,22 @@ public class XRedisInfo {
 		this.slowLogs = slowLogs;
 	}
 	
+	public Long getDiffTotalDBCount() {
+		return diffTotalDBCount;
+	}
+	
+	public void setDiffTotalDBCount(Long diffTotalDBCount) {
+		this.diffTotalDBCount = diffTotalDBCount;
+	}
+	
+	public Long getDiffTotalExpireCount() {
+		return diffTotalExpireCount;
+	}
+	
+	public void setDiffTotalExpireCount(Long diffTotalExpireCount) {
+		this.diffTotalExpireCount = diffTotalExpireCount;
+	}
+	
 	public List<XSlowLog> getDiffSlowLogs() {
 		return diffSlowLogs;
 	}
@@ -579,9 +601,9 @@ public class XRedisInfo {
 		this.diffTotalSlowLogExecutionTime = diffTotalSlowLogExecutionTime;
 	}
 	
-	public static XRedisInfo valueOf(String info, List<String> maxclients, long slowLogLen, List<Object> binaryLogs) {
+	public static XStandaloneRedisInfo valueOf(String info, List<String> maxclients, long slowLogLen, List<Object> binaryLogs) {
 		Map<String, Map<String, String>> nextInfo = convert(info);
-		XRedisInfo xinfo = new XRedisInfo();
+		XStandaloneRedisInfo xinfo = new XStandaloneRedisInfo();
 		xinfo.uptimeInSeconds = getLong("Server", "uptime_in_seconds", nextInfo);
 		xinfo.redisVersion = getString("Server", "redis_version", nextInfo);
 		xinfo.role = getString("Replication", "role", nextInfo);
@@ -634,12 +656,18 @@ public class XRedisInfo {
 		return xinfo;
 	}
 	
-	public static XRedisInfo diff(XRedisInfo prev, XRedisInfo next) {
+	public static XStandaloneRedisInfo diff(XStandaloneRedisInfo prev, XStandaloneRedisInfo next) {
 		if (prev.evictedKeys != null && next.evictedKeys != null) {
 			next.diffEvictedKeys = next.evictedKeys - prev.evictedKeys;
 		}
 		if (prev.expiredKeys != null && next.expiredKeys != null) {
 			next.diffExpiredKeys = next.expiredKeys - prev.expiredKeys;
+		}
+		if (prev.totalDBCount != null && next.totalDBCount != null) {
+			next.diffTotalDBCount = next.totalDBCount - prev.totalDBCount;
+		}
+		if (prev.totalExpireCount != null && next.totalExpireCount != null) {
+			next.diffTotalExpireCount = next.totalExpireCount - prev.totalExpireCount;
 		}
 		if (prev.totalConnectionsReceived != null && next.totalConnectionsReceived != null) {
 			next.diffTotalConnectionsReceived = next.totalConnectionsReceived - prev.totalConnectionsReceived;
@@ -666,7 +694,7 @@ public class XRedisInfo {
 		return next;
 	}
 	
-	public static void diff(List<XSlowLog> prev, List<XSlowLog> next, XRedisInfo xinfo) {
+	public static void diff(List<XSlowLog> prev, List<XSlowLog> next, XStandaloneRedisInfo xinfo) {
 		long nextId = isEmpty(next) ? 0 : next.get(0).getId();
 		long prevId = isEmpty(prev) ? nextId : prev.get(0).getId();
 		int count = (int) Math.min(nextId - prevId, xinfo.slowLogLen);
@@ -738,7 +766,7 @@ public class XRedisInfo {
 		return map;
 	}
 	
-	private static void dbInfo(Map<String, Map<String, String>> map, XRedisInfo info) {
+	private static void dbInfo(Map<String, Map<String, String>> map, XStandaloneRedisInfo info) {
 		try {
 			Map<String, String> value = map.get("Keyspace");
 			long totalDBCount = 0L;
@@ -761,5 +789,74 @@ public class XRedisInfo {
 			info.totalExpireCount = totalExpireCount;
 		} catch (NumberFormatException e) {
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "XStandaloneRedisInfo{" +
+				"hostAndPort=" + hostAndPort +
+				", role='" + role + '\'' +
+				", uptimeInSeconds=" + uptimeInSeconds +
+				", redisVersion='" + redisVersion + '\'' +
+				", connectedClients=" + connectedClients +
+				", blockedClients=" + blockedClients +
+				", trackingClients=" + trackingClients +
+				", maxclients=" + maxclients +
+				", maxmemory=" + maxmemory +
+				", usedMemory=" + usedMemory +
+				", usedMemoryRss=" + usedMemoryRss +
+				", usedMemoryPeak=" + usedMemoryPeak +
+				", usedMemoryDataset=" + usedMemoryDataset +
+				", usedMemoryLua=" + usedMemoryLua +
+				", usedMemoryFunctions=" + usedMemoryFunctions +
+				", usedMemoryScripts=" + usedMemoryScripts +
+				", totalSystemMemory=" + totalSystemMemory +
+				", memFragmentationRatio=" + memFragmentationRatio +
+				", memFragmentationBytes=" + memFragmentationBytes +
+				", totalConnectionsReceived=" + totalConnectionsReceived +
+				", totalCommandsProcessed=" + totalCommandsProcessed +
+				", totalReadsProcessed=" + totalReadsProcessed +
+				", totalWritesProcessed=" + totalWritesProcessed +
+				", totalErrorReplies=" + totalErrorReplies +
+				", keyspaceHits=" + keyspaceHits +
+				", keyspaceMisses=" + keyspaceMisses +
+				", totalNetInputBytes=" + totalNetInputBytes +
+				", totalNetOutputBytes=" + totalNetOutputBytes +
+				", evictedKeysPerSec=" + evictedKeysPerSec +
+				", instantaneousOpsPerSec=" + instantaneousOpsPerSec +
+				", instantaneousWriteOpsPerSec=" + instantaneousWriteOpsPerSec +
+				", instantaneousReadOpsPerSec=" + instantaneousReadOpsPerSec +
+				", instantaneousOtherOpsPerSec=" + instantaneousOtherOpsPerSec +
+				", instantaneousSyncWriteOpsPerSec=" + instantaneousSyncWriteOpsPerSec +
+				", instantaneousInputKbps=" + instantaneousInputKbps +
+				", instantaneousOutputKbps=" + instantaneousOutputKbps +
+				", usedCpuSys=" + usedCpuSys +
+				", usedCpuUser=" + usedCpuUser +
+				", usedCpuSysChildren=" + usedCpuSysChildren +
+				", usedCpuUserChildren=" + usedCpuUserChildren +
+				", expiredKeys=" + expiredKeys +
+				", evictedKeys=" + evictedKeys +
+				", totalDBCount=" + totalDBCount +
+				", totalExpireCount=" + totalExpireCount +
+				", slowLogLen=" + slowLogLen +
+				", totalSlowLog=" + totalSlowLog +
+				", slowLogs=" + slowLogs +
+				", dbInfo=" + dbInfo +
+				", dbExpireInfo=" + dbExpireInfo +
+				", diffTotalDBCount=" + diffTotalDBCount +
+				", diffTotalExpireCount=" + diffTotalExpireCount +
+				", diffTotalSlowLog=" + diffTotalSlowLog +
+				", diffExpiredKeys=" + diffExpiredKeys +
+				", diffEvictedKeys=" + diffEvictedKeys +
+				", diffTotalConnectionsReceived=" + diffTotalConnectionsReceived +
+				", diffTotalCommandsProcessed=" + diffTotalCommandsProcessed +
+				", diffTotalNetInputBytes=" + diffTotalNetInputBytes +
+				", diffTotalNetOutputBytes=" + diffTotalNetOutputBytes +
+				", diffTotalReadsProcessed=" + diffTotalReadsProcessed +
+				", diffTotalWritesProcessed=" + diffTotalWritesProcessed +
+				", diffTotalErrorReplies=" + diffTotalErrorReplies +
+				", diffTotalSlowLogExecutionTime=" + diffTotalSlowLogExecutionTime +
+				", diffSlowLogs=" + diffSlowLogs +
+				'}';
 	}
 }
