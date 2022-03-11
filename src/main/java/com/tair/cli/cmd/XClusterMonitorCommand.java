@@ -145,7 +145,7 @@ public class XClusterMonitorCommand implements Runnable, Closeable {
 	private void setMonitor(String ip, XStandaloneRedisInfo value, String role) {
 		String[] properties = new String[]{role, ip};
 		
-		setString("cluster_nodes", role, ip);
+		setString("cluster_nodes", ip, role);
 		setLong("cluster_connected_clients", properties, value.getConnectedClients());
 		setLong("cluster_blocked_clients", properties, value.getBlockedClients());
 		setLong("cluster_tracking_clients", properties, value.getTrackingClients());
