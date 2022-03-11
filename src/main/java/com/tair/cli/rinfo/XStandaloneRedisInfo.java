@@ -23,8 +23,6 @@ import java.util.Map;
 
 import com.tair.cli.rinfo.support.XSlowLog;
 
-import redis.clients.jedis.HostAndPort;
-
 /**
  * @author Baoyi Chen
  */
@@ -32,7 +30,7 @@ public class XStandaloneRedisInfo {
 	
 	public static XStandaloneRedisInfo EMPTY = new XStandaloneRedisInfo();
 	
-	private HostAndPort hostAndPort;
+	private String hostAndPort;
 	private String role;
 	private Long uptimeInSeconds;
 	private String redisVersion;
@@ -74,8 +72,6 @@ public class XStandaloneRedisInfo {
 	private Double usedCpuUserChildren;
 	private Long expiredKeys;
 	private Long evictedKeys;
-	private Long totalDBCount;
-	private Long totalExpireCount;
 	private Long slowLogLen;
 	private Long totalSlowLog;
 	private List<XSlowLog> slowLogs = new ArrayList<>();
@@ -86,11 +82,11 @@ public class XStandaloneRedisInfo {
 	private Long diffTotalSlowLogExecutionTime;
 	private List<XSlowLog> diffSlowLogs = new ArrayList<>();
 	
-	public HostAndPort getHostAndPort() {
+	public String getHostAndPort() {
 		return hostAndPort;
 	}
 	
-	public void setHostAndPort(HostAndPort hostAndPort) {
+	public void setHostAndPort(String hostAndPort) {
 		this.hostAndPort = hostAndPort;
 	}
 	
@@ -470,22 +466,6 @@ public class XStandaloneRedisInfo {
 		this.dbExpireInfo = dbExpireInfo;
 	}
 	
-	public Long getTotalDBCount() {
-		return totalDBCount;
-	}
-	
-	public void setTotalDBCount(Long totalDBCount) {
-		this.totalDBCount = totalDBCount;
-	}
-	
-	public Long getTotalExpireCount() {
-		return totalExpireCount;
-	}
-	
-	public void setTotalExpireCount(Long totalExpireCount) {
-		this.totalExpireCount = totalExpireCount;
-	}
-	
 	public Long getDiffTotalSlowLogExecutionTime() {
 		return diffTotalSlowLogExecutionTime;
 	}
@@ -502,9 +482,10 @@ public class XStandaloneRedisInfo {
 		this.diffTotalSlowLog = diffTotalSlowLog;
 	}
 	
-	public static XStandaloneRedisInfo valueOf(String info, List<String> maxclients, long slowLogLen, List<Object> binaryLogs) {
+	public static XStandaloneRedisInfo valueOf(String info, List<String> maxclients, long slowLogLen, List<Object> binaryLogs, String hostAndPort) {
 		Map<String, Map<String, String>> nextInfo = convert(info);
 		XStandaloneRedisInfo xinfo = new XStandaloneRedisInfo();
+		xinfo.hostAndPort = hostAndPort;
 		xinfo.uptimeInSeconds = getLong("Server", "uptime_in_seconds", nextInfo);
 		xinfo.redisVersion = getString("Server", "redis_version", nextInfo);
 		xinfo.role = getString("Replication", "role", nextInfo);
@@ -552,7 +533,7 @@ public class XStandaloneRedisInfo {
 		
 		dbInfo(nextInfo, xinfo);
 		xinfo.slowLogLen = slowLogLen;
-		xinfo.slowLogs = XSlowLog.valueOf(binaryLogs);
+		xinfo.slowLogs = XSlowLog.valueOf(binaryLogs, hostAndPort);
 		xinfo.totalSlowLog = isEmpty(xinfo.slowLogs) ? 0 : xinfo.slowLogs.get(0).getId();
 		return xinfo;
 	}
@@ -637,8 +618,6 @@ public class XStandaloneRedisInfo {
 	private static void dbInfo(Map<String, Map<String, String>> map, XStandaloneRedisInfo info) {
 		try {
 			Map<String, String> value = map.get("Keyspace");
-			long totalDBCount = 0L;
-			long totalExpireCount = 0L;
 			Map<String, Long> dbInfo = new HashMap<>(16);
 			Map<String, Long> dbExpireInfo = new HashMap<>(16);
 			for (Map.Entry<String, String> entry : value.entrySet()) {
@@ -648,13 +627,9 @@ public class XStandaloneRedisInfo {
 				long expires = Long.parseLong(ary[1].split("=")[1]);
 				dbInfo.put(key, dbsize);
 				dbExpireInfo.put(key, expires);
-				totalDBCount += dbsize;
-				totalExpireCount += expires;
 			}
 			info.dbInfo = dbInfo;
 			info.dbExpireInfo = dbExpireInfo;
-			info.totalDBCount = totalDBCount;
-			info.totalExpireCount = totalExpireCount;
 		} catch (NumberFormatException e) {
 		}
 	}
@@ -704,8 +679,6 @@ public class XStandaloneRedisInfo {
 				", usedCpuUserChildren=" + usedCpuUserChildren +
 				", expiredKeys=" + expiredKeys +
 				", evictedKeys=" + evictedKeys +
-				", totalDBCount=" + totalDBCount +
-				", totalExpireCount=" + totalExpireCount +
 				", slowLogLen=" + slowLogLen +
 				", totalSlowLog=" + totalSlowLog +
 				", slowLogs=" + slowLogs +

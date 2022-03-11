@@ -27,8 +27,6 @@ import com.tair.cli.rinfo.support.NodeConfParser;
 import com.tair.cli.rinfo.support.XClusterInfo;
 import com.tair.cli.rinfo.support.XClusterNodes;
 
-import redis.clients.jedis.HostAndPort;
-
 /**
  * @author Baoyi Chen
  */
@@ -37,9 +35,7 @@ public class XClusterRedisInfo {
 	public static XClusterRedisInfo EMPTY_CLUSTER = new XClusterRedisInfo();
 	
 	//
-	private Long clusterStatsMessagesSent;
-	private Long clusterStatsMessagesReceived;
-	//
+	private XClusterInfo clusterInfo = new XClusterInfo();
 	private List<XClusterInfo> clusterInfos = new ArrayList<>();
 	private List<XClusterNodes> clusterNodes = new ArrayList<>();
 	
@@ -48,24 +44,8 @@ public class XClusterRedisInfo {
 	private XStandaloneRedisInfo slave = new XStandaloneRedisInfo();
 	
 	//
-	private Map<HostAndPort, XStandaloneRedisInfo> masters = new HashMap<>();
-	private Map<HostAndPort, XStandaloneRedisInfo> slaves = new HashMap<>();
-	
-	public Long getClusterStatsMessagesSent() {
-		return clusterStatsMessagesSent;
-	}
-	
-	public void setClusterStatsMessagesSent(Long clusterStatsMessagesSent) {
-		this.clusterStatsMessagesSent = clusterStatsMessagesSent;
-	}
-	
-	public Long getClusterStatsMessagesReceived() {
-		return clusterStatsMessagesReceived;
-	}
-	
-	public void setClusterStatsMessagesReceived(Long clusterStatsMessagesReceived) {
-		this.clusterStatsMessagesReceived = clusterStatsMessagesReceived;
-	}
+	private Map<String, XStandaloneRedisInfo> masters = new HashMap<>();
+	private Map<String, XStandaloneRedisInfo> slaves = new HashMap<>();
 	
 	public List<XClusterInfo> getClusterInfos() {
 		return clusterInfos;
@@ -99,19 +79,19 @@ public class XClusterRedisInfo {
 		this.slave = slave;
 	}
 	
-	public Map<HostAndPort, XStandaloneRedisInfo> getMasters() {
+	public Map<String, XStandaloneRedisInfo> getMasters() {
 		return masters;
 	}
 	
-	public void setMasters(Map<HostAndPort, XStandaloneRedisInfo> masters) {
+	public void setMasters(Map<String, XStandaloneRedisInfo> masters) {
 		this.masters = masters;
 	}
 	
-	public Map<HostAndPort, XStandaloneRedisInfo> getSlaves() {
+	public Map<String, XStandaloneRedisInfo> getSlaves() {
 		return slaves;
 	}
 	
-	public void setSlaves(Map<HostAndPort, XStandaloneRedisInfo> slaves) {
+	public void setSlaves(Map<String, XStandaloneRedisInfo> slaves) {
 		this.slaves = slaves;
 	}
 	
@@ -130,37 +110,36 @@ public class XClusterRedisInfo {
 				calculate(xinfo.slave, info);
 			}
 		}
-		
 		for (XClusterInfo cinfo : xinfo.clusterInfos) {
-			xinfo.clusterStatsMessagesSent = add(xinfo.clusterStatsMessagesSent, cinfo.getClusterStatsMessagesSent());
-			xinfo.clusterStatsMessagesReceived = add(xinfo.clusterStatsMessagesReceived, cinfo.getClusterStatsMessagesReceived());
+			xinfo.clusterInfo.copy(cinfo);
+			xinfo.clusterInfo.setClusterStatsMessagesSent(add(xinfo.clusterInfo.getClusterStatsMessagesSent(), cinfo.getClusterStatsMessagesSent()));
+			xinfo.clusterInfo.setClusterStatsMessagesReceived(add(xinfo.clusterInfo.getClusterStatsMessagesReceived(), cinfo.getClusterStatsMessagesReceived()));
 		}
-		
 		return xinfo;
 	}
 	
 	public static XClusterRedisInfo diff(XClusterRedisInfo prev, XClusterRedisInfo next) {
-		Map<HostAndPort, XStandaloneRedisInfo> pmmap = prev.masters;
-		Map<HostAndPort, XStandaloneRedisInfo> nmmap = next.masters;
+		Map<String, XStandaloneRedisInfo> pmmap = prev.masters;
+		Map<String, XStandaloneRedisInfo> nmmap = next.masters;
 		next.masters = diff(pmmap, nmmap);
 		
-		Map<HostAndPort, XStandaloneRedisInfo> psmap = prev.slaves;
-		Map<HostAndPort, XStandaloneRedisInfo> nsmap = next.slaves;
+		Map<String, XStandaloneRedisInfo> psmap = prev.slaves;
+		Map<String, XStandaloneRedisInfo> nsmap = next.slaves;
 		next.slaves = diff(psmap, nsmap);
 		
-		for (Map.Entry<HostAndPort, XStandaloneRedisInfo> entry : next.masters.entrySet()) {
+		for (Map.Entry<String, XStandaloneRedisInfo> entry : next.masters.entrySet()) {
 			calculateDiff(next.master, entry.getValue());
 		}
 		
-		for (Map.Entry<HostAndPort, XStandaloneRedisInfo> entry : next.slaves.entrySet()) {
+		for (Map.Entry<String, XStandaloneRedisInfo> entry : next.slaves.entrySet()) {
 			calculateDiff(next.slave, entry.getValue());
 		}
 		
 		return next;
 	}
 	
-	private static Map<HostAndPort, XStandaloneRedisInfo> diff(Map<HostAndPort, XStandaloneRedisInfo> prev, Map<HostAndPort, XStandaloneRedisInfo> next) {
-		for (Map.Entry<HostAndPort, XStandaloneRedisInfo> entry : next.entrySet()) {
+	private static Map<String, XStandaloneRedisInfo> diff(Map<String, XStandaloneRedisInfo> prev, Map<String, XStandaloneRedisInfo> next) {
+		for (Map.Entry<String, XStandaloneRedisInfo> entry : next.entrySet()) {
 			if (prev.containsKey(entry.getKey())) {
 				XStandaloneRedisInfo.diff(prev.get(entry.getKey()), entry.getValue());
 			} else {
@@ -207,8 +186,6 @@ public class XClusterRedisInfo {
 		// totalNetOutputBytes
 		// expiredKeys
 		// evictedKeys
-		// totalDBCount
-		// totalExpireCount
 		// totalSlowLog
 		// slowLogLen
 		result.setRedisVersion(info.getRedisVersion());
@@ -238,8 +215,6 @@ public class XClusterRedisInfo {
 		result.setTotalNetOutputBytes(add(result.getTotalNetOutputBytes(), info.getTotalNetOutputBytes()));
 		result.setExpiredKeys(add(result.getExpiredKeys(), info.getExpiredKeys()));
 		result.setEvictedKeys(add(result.getEvictedKeys(), info.getEvictedKeys()));
-		result.setTotalDBCount(add(result.getTotalDBCount(), info.getTotalDBCount()));
-		result.setTotalExpireCount(add(result.getTotalExpireCount(), info.getTotalExpireCount()));
 		result.setTotalSlowLog(add(result.getTotalSlowLog(), info.getTotalSlowLog()));
 		result.setSlowLogLen(info.getSlowLogLen());
 	}
@@ -277,8 +252,7 @@ public class XClusterRedisInfo {
 	@Override
 	public String toString() {
 		return "XClusterRedisInfo{" +
-				"clusterStatsMessagesSent=" + clusterStatsMessagesSent +
-				", clusterStatsMessagesReceived=" + clusterStatsMessagesReceived +
+				"clusterInfo=" + clusterInfo +
 				", clusterInfos=" + clusterInfos +
 				", clusterNodes=" + clusterNodes +
 				", master=" + master +

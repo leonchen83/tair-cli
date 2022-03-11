@@ -19,8 +19,6 @@ package com.tair.cli.rinfo.support;
 import java.util.ArrayList;
 import java.util.List;
 
-import redis.clients.jedis.HostAndPort;
-
 /**
  * @author Baoyi Chen
  */
@@ -34,7 +32,7 @@ public class XClusterNodes {
 	private long configEpoch;
 	private List<Short> slots = new ArrayList<>(8192);
 	private List<Short> migratingSlots = new ArrayList<>(8192);
-	private HostAndPort hostAndPort;
+	private String hostAndPort;
 	private String name;
 	private String link;
 	
@@ -102,11 +100,11 @@ public class XClusterNodes {
 		this.migratingSlots = migratingSlots;
 	}
 	
-	public HostAndPort getHostAndPort() {
+	public String getHostAndPort() {
 		return hostAndPort;
 	}
 	
-	public void setHostAndPort(HostAndPort hostAndPort) {
+	public void setHostAndPort(String hostAndPort) {
 		this.hostAndPort = hostAndPort;
 	}
 	

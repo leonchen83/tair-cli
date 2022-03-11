@@ -21,8 +21,6 @@ import static java.lang.Integer.parseInt;
 import java.util.ArrayList;
 import java.util.List;
 
-import redis.clients.jedis.HostAndPort;
-
 /**
  * @author Baoyi Chen
  */
@@ -59,7 +57,7 @@ public class NodeConfParser {
                 int aIdx = hostAndPort.indexOf("@");
                 String host = hostAndPort.substring(0, cIdx); // ip
                 int port = parseInt(hostAndPort.substring(cIdx + 1, aIdx == -1 ? hostAndPort.length() : aIdx));
-                node.setHostAndPort(new HostAndPort(host, port));
+                node.setHostAndPort(host + ":" + port);
                 for (String role : args.get(2).split(",")) {
                     switch (role) {
                         case "fail":

@@ -107,7 +107,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 			List<String> maxclients = retry(e -> e.configGet("maxclients"));
 			long len = retry(e -> e.slowlogLen());
 			List<Object> binaryLogs = retry(e -> e.slowlogGetBinary(128));
-			XStandaloneRedisInfo next = XStandaloneRedisInfo.valueOf(info, maxclients, len, binaryLogs);
+			XStandaloneRedisInfo next = XStandaloneRedisInfo.valueOf(info, maxclients, len, binaryLogs, null);
 			next = XStandaloneRedisInfo.diff(prev, next);
 			
 			// server
@@ -190,7 +190,7 @@ public class XMonitorCommand implements Runnable, Closeable {
 				properties[1] = slowLog.getTimestamp();
 				properties[2] = slowLog.getCommand();
 				properties[3] = slowLog.getClientName();
-				properties[4] = slowLog.getHostAndPort() == null ? "" : slowLog.getHostAndPort().toString();
+				properties[4] = slowLog.getHostAndPort();
 				monitor.set("slow_log", properties, slowLog.getExecutionTime());
 			}
 			

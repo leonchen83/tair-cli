@@ -44,8 +44,7 @@ public class Main {
 					List<String> maxclients = jedis.configGet("maxclients");
 					long len = jedis.slowlogLen();
 					List<Object> binaryLogs = jedis.slowlogGetBinary(128);
-					XStandaloneRedisInfo next = XStandaloneRedisInfo.valueOf(info, maxclients, len, binaryLogs);
-					next.setHostAndPort(HostAndPort.from(k));
+					XStandaloneRedisInfo next = XStandaloneRedisInfo.valueOf(info, maxclients, len, binaryLogs, k);
 					xinfos.add(next);
 				}
 			});

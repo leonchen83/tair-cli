@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 
 import com.moilioncircle.redis.replicator.cmd.RedisCodec;
 
-import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.util.SafeEncoder;
 
 /**
@@ -40,9 +39,10 @@ public class XSlowLog {
 	private Long id;
 	private String command;
 	private String timestamp;
-	private HostAndPort hostAndPort;
-	private String clientName = "";
 	private Long executionTime;
+	private String server = "";
+	private String hostAndPort = "";
+	private String clientName = "";
 	
 	public Long getId() {
 		return id;
@@ -68,11 +68,19 @@ public class XSlowLog {
 		this.timestamp = timestamp;
 	}
 	
-	public HostAndPort getHostAndPort() {
+	public String getServer() {
+		return server;
+	}
+	
+	public void setServer(String server) {
+		this.server = server;
+	}
+	
+	public String getHostAndPort() {
 		return hostAndPort;
 	}
 	
-	public void setHostAndPort(HostAndPort hostAndPort) {
+	public void setHostAndPort(String hostAndPort) {
 		this.hostAndPort = hostAndPort;
 	}
 	
@@ -92,8 +100,9 @@ public class XSlowLog {
 		this.executionTime = executionTime;
 	}
 	
-	private XSlowLog(List<Object> properties) {
+	private XSlowLog(List<Object> properties, String server) {
 		super();
+		this.server = server;
 		this.id = (Long) properties.get(0);
 		long timestamp = (Long) properties.get(1);
 		this.timestamp = FORMATTER.format(ofEpochMilli(timestamp * 1000).atZone(systemDefault()));
@@ -103,7 +112,7 @@ public class XSlowLog {
 		this.command = bargs.stream().map(e -> quote(new String(codec.encode(e)))).collect(Collectors.joining(" "));
 		if (properties.size() == 4) return;
 		
-		this.hostAndPort = HostAndPort.from(SafeEncoder.encode((byte[]) properties.get(4)));
+		this.hostAndPort = SafeEncoder.encode((byte[]) properties.get(4));
 		this.clientName = SafeEncoder.encode((byte[]) properties.get(5));
 	}
 	
@@ -111,11 +120,11 @@ public class XSlowLog {
 		return new StringBuilder().append('"').append(name).append('"').toString();
 	}
 	
-	public static List<XSlowLog> valueOf(List<Object> binaryLogs) {
+	public static List<XSlowLog> valueOf(List<Object> binaryLogs, String server) {
 		List<XSlowLog> logs = new ArrayList<>(binaryLogs.size());
 		for (Object object : binaryLogs) {
 			List<Object> properties = (List<Object>) object;
-			logs.add(new XSlowLog(properties));
+			logs.add(new XSlowLog(properties, server));
 		}
 		return logs;
 	}
@@ -126,6 +135,7 @@ public class XSlowLog {
 				"id=" + id +
 				", command='" + command + '\'' +
 				", timestamp='" + timestamp + '\'' +
+				", server=" + server +
 				", hostAndPort=" + hostAndPort +
 				", clientName='" + clientName + '\'' +
 				", executionTime=" + executionTime +

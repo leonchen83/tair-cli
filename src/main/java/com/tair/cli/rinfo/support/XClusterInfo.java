@@ -116,6 +116,18 @@ public class XClusterInfo {
 		this.clusterStatsMessagesReceived = clusterStatsMessagesReceived;
 	}
 	
+	public XClusterInfo copy(XClusterInfo that) {
+		this.clusterState = that.clusterState;
+		this.clusterSlotsAssigned = that.clusterSlotsAssigned;
+		this.clusterSlotsOk = that.clusterSlotsOk;
+		this.clusterSlotsPfail = that.clusterSlotsPfail;
+		this.clusterSlotsFail = that.clusterSlotsFail;
+		this.clusterKnownNodes = that.clusterKnownNodes;
+		this.clusterSize = that.clusterSize;
+		this.clusterCurrentEpoch = that.clusterCurrentEpoch;
+		return this;
+	}
+	
 	public static XClusterInfo valueOf(String clusterInfo) {
 		Map<String, String> map = convert(clusterInfo);
 		XClusterInfo xinfo = new XClusterInfo();
